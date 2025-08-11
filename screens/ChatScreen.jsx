@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getConversation } from '../utils/api';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -73,9 +74,9 @@ export default function ChatScreen() {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top : 8, paddingBottom: 0 }]}> {/* Vertically centered header */}
+  <View style={[styles.header, { paddingTop: insets.top > 0 ? Math.min(insets.top, 8) : 4, paddingBottom: 0 }]}> {/* Reduced top padding */}
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backText}>{'<'}</Text>
+          <Ionicons name="arrow-back" size={24} color="#007AFF" />
         </TouchableOpacity>
         <Image
           source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}` }}
@@ -122,7 +123,7 @@ export default function ChatScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderColor: '#eee', backgroundColor: '#f9f9f9', minHeight: 0, height: 76 },
+  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderColor: '#eee', backgroundColor: '#f9f9f9', minHeight: 0, height: 56 },
   backButton: { marginRight: 10, padding: 4 },
   backText: { fontSize: 22, color: '#007AFF' },
   headerAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 8 },
