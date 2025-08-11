@@ -24,12 +24,11 @@ async function getToken() {
   return await AsyncStorage.getItem('token');
 }
 
-export async function fetchPosts({ page = 1, limit = 10 } = {}) {
+export async function fetchPosts({ offset = 0, limit = 20 } = {}) {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/posts?page=${page}&limit=${limit}`, {
+  const res = await fetch(`${API_BASE}/posts?offset=${offset}&limit=${limit}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch posts');
-  const data = await res.json();
-  return data.posts;
+  return await res.json();
 }

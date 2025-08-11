@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSidebar } from '../context/SidebarContext';
 import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -7,11 +8,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const LOGO = require('../assets/icon.png');
 const GOLD = '#a99d6b';
 
-export default function MainHeader({ onMenu, onCommunity, onMessages, onNotifications, onProfile }) {
+
+export default function MainHeader({ onCommunity, onMessages, onNotifications, onProfile }) {
   const insets = useSafeAreaInsets();
+  const { toggleSidebar } = useSidebar();
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>  
-      <TouchableOpacity style={styles.iconButton} onPress={onMenu}>
+      <TouchableOpacity style={styles.iconButton} onPress={toggleSidebar}>
         <Icon name="bars" size={30} color={GOLD} />
       </TouchableOpacity>
       <View style={styles.centerContainer}>

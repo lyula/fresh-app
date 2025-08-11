@@ -25,7 +25,7 @@ export default function PostCard({ post }) {
     alert('Delete post');
   };
   const author = post.author || post.user || {};
-  const avatar = author.profileImage || author.avatar || (author.profile && author.profile.profileImage) || 'https://ui-avatars.com/api/?name=User';
+  const avatar = author.profileImage || author.avatar || (author.profile && author.profile.profileImage) || null;
   let content = '';
   if (typeof post.content === 'string') {
     content = post.content;
@@ -68,10 +68,8 @@ export default function PostCard({ post }) {
           {avatar ? (
             <Image source={{ uri: avatar }} style={styles.avatar} />
           ) : (
-            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center' }]}> 
-              <Text style={{ color: '#888', fontWeight: 'bold', fontSize: 18 }}>
-                {(author.username && author.username[0]) ? author.username[0].toUpperCase() : '?'}
-              </Text>
+            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0e0e0' }]}> 
+              <Icon name="user" size={22} color="#888" />
             </View>
           )}
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
@@ -179,6 +177,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
+    paddingLeft: 13,
+    paddingRight: 13,
   },
   headerWithPad: {
     flexDirection: 'row',
@@ -187,9 +187,9 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     marginRight: 10,
     marginTop: 12,
   },
@@ -232,6 +232,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     marginBottom: 8,
+    paddingLeft: 13,
+    paddingRight: 13,
   },
   postImage: {
     height: 480,

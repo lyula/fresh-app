@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
+import { useSidebar } from '../context/SidebarContext';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, Animated, Dimensions, ScrollView, Image, PanResponder } from 'react-native';
 import { MaterialCommunityIcons, FontAwesome5, Feather } from '@expo/vector-icons';
 const VERIFIED_BADGE = require('../assets/blue-badge.png');
@@ -140,7 +141,8 @@ const styles = StyleSheet.create({
   },
 });
 
-export default function Sidebar({ visible, onClose, onNavigate }) {
+export default function Sidebar() {
+  const { visible, closeSidebar, handleNavigate } = useSidebar();
   const { user: profile, loadingUser: loading, setUser } = useUser();
   const dashboardLinks = [
     { label: 'Dashboard', icon: <MaterialCommunityIcons name="view-dashboard-outline" size={24} color={GOLD} />, route: 'Dashboard' },
@@ -172,7 +174,7 @@ export default function Sidebar({ visible, onClose, onNavigate }) {
             toValue: -sidebarWidth,
             duration: 160,
             useNativeDriver: false,
-          }).start(() => onClose && onClose());
+          }).start(() => closeSidebar());
         } else {
           Animated.timing(slideAnim, {
             toValue: 0,
@@ -205,10 +207,10 @@ export default function Sidebar({ visible, onClose, onNavigate }) {
       visible={visible}
       animationType="none"
       transparent
-      onRequestClose={onClose}
+      onRequestClose={closeSidebar}
     >
       <View style={styles.overlay}>
-        <TouchableOpacity style={styles.bgTouchable} activeOpacity={1} onPress={onClose} />
+        <TouchableOpacity style={styles.bgTouchable} activeOpacity={1} onPress={closeSidebar} />
         <Animated.View
           style={[styles.sidebar, { width: sidebarWidth, left: slideAnim }]}
           {...panResponder.panHandlers}
@@ -268,7 +270,7 @@ export default function Sidebar({ visible, onClose, onNavigate }) {
                   <TouchableOpacity
                     key={link.label}
                     style={styles.menuItem}
-                    onPress={() => { onNavigate && onNavigate(link.route); onClose(); }}
+                    onPress={() => { handleNavigate(link.route); }}
                     accessibilityLabel={link.label}
                   >
                     <View style={styles.iconLabelRow}>
@@ -284,12 +286,7 @@ export default function Sidebar({ visible, onClose, onNavigate }) {
               <View style={styles.hr} />
               <TouchableOpacity
                 style={styles.logoutBtn}
-                onPress={() => {
-                  if (onNavigate) {
-                    onNavigate('Login');
-                  }
-                  onClose && onClose();
-                }}
+                onPress={() => handleNavigate('Login')}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
                   <Feather name="log-out" size={22} color={GOLD} style={{ marginRight: 10 }} />
