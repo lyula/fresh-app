@@ -147,6 +147,7 @@ export default function PostCard({ post }) {
           likedBy={Array.isArray(post.likes) ? post.likes.map(u => u._id || u) : []}
           onComment={handleOpenComments}
           onShare={handleShare}
+          onLikesPress={handleOpenLikes}
         />
       </View>
       {/* Faint horizontal rule below each post */}

@@ -6,7 +6,7 @@ import { likePost } from '../utils/api';
 import { useUser } from '../context/user';
 
 
-export default function PostsInteractionBar({ likes, comments, shareCount, views, postId, likedBy = [], onComment, onShare }) {
+export default function PostsInteractionBar({ likes, comments, shareCount, views, postId, likedBy = [], onComment, onShare, onLikesPress }) {
   const { userId } = useUser();
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(likes || 0);
@@ -38,7 +38,9 @@ export default function PostsInteractionBar({ likes, comments, shareCount, views
             <Icon name={liked ? 'heart' : 'heart-o'} size={18} color={liked ? '#e11d48' : '#e53935'} />
           </TouchableOpacity>
           <View style={{ width: 8 }} />
-          <Text style={[styles.actionText, liked && { color: '#e11d48' }]}>{likesCount}</Text>
+          <TouchableOpacity onPress={onLikesPress} disabled={!onLikesPress}>
+            <Text style={[styles.actionText, liked && { color: '#e11d48' }]}>{likesCount}</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.actionBtn}>
           <TouchableOpacity onPress={onComment}>

@@ -1,9 +1,26 @@
+
+// Format last seen for display (client logic)
+function formatLastSeen(lastSeen) {
+  if (!lastSeen) return '';
+  const d = new Date(lastSeen);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMinutes = Math.floor(diffMs / 60000);
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes} minute${diffMinutes === 1 ? '' : 's'} ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours} hour${diffHours === 1 ? '' : 's'} ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} day${diffDays === 1 ? '' : 's'} ago`;
+  return d.toLocaleString();
+}
+
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { useUser } from '../context/user';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { getConversation } from '../utils/api';
+import { getConversation, getToken } from '../utils/api';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 export default function ChatScreen() {
@@ -11,7 +28,8 @@ export default function ChatScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation();
-  const { user } = route.params || {};
+  const { user: initialUser } = route.params || {};
+  const [user, setUser] = useState(initialUser || {});
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [input, setInput] = useState('');
@@ -36,7 +54,27 @@ export default function ChatScreen() {
         setMessages([]);
         setLoading(false);
       });
-  }, [user]);
+
+    // Fetch last seen info
+    const fetchLastSeen = async () => {
+      try {
+        const API_BASE = process.env.EXPO_PUBLIC_API_URL || process.env.API_BASE || '';
+        const token = await getToken();
+        const res = await fetch(`${API_BASE}/user/last-seen/${user._id}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.lastSeen) {
+            setUser(u => ({ ...u, lastSeen: data.lastSeen }));
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+    };
+    fetchLastSeen();
+  }, [user && user._id]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
@@ -90,10 +128,15 @@ export default function ChatScreen() {
             source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}` }}
             style={styles.headerAvatar}
           />
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.headerUsername}>{typeof user.username === 'string' ? user.username : 'User'}</Text>
-            {user.verified && (
-              <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
+          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.headerUsername}>{typeof user.username === 'string' ? user.username : 'User'}</Text>
+              {user.verified && (
+                <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
+              )}
+            </View>
+            {user.lastSeen && (
+              <Text style={styles.lastSeenText}>{formatLastSeen(user.lastSeen)}</Text>
             )}
           </View>
         </View>
@@ -107,7 +150,6 @@ export default function ChatScreen() {
             renderItem={renderMessage}
             keyExtractor={item => (item && typeof item === 'object' && item._id ? String(item._id) : Math.random().toString(36))}
             contentContainerStyle={styles.messagesList}
-            // initialScrollIndex removed to prevent flicker
             onContentSizeChange={() => {
               if (flatListRef.current) {
                 flatListRef.current.scrollToEnd({ animated: false });
@@ -137,6 +179,7 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+  lastSeenText: { fontSize: 12, color: '#888', marginTop: 2 },
   container: { flex: 1, backgroundColor: '#fff' },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, borderBottomWidth: 1, borderColor: '#eee', backgroundColor: '#f9f9f9', minHeight: 0, height: 56 },
   backButton: { marginRight: 10, padding: 4 },
@@ -160,4 +203,5 @@ const styles = StyleSheet.create({
   input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20, marginRight: 8, marginBottom: 0 },
   sendButton: { backgroundColor: '#007AFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   sendText: { color: '#fff', fontWeight: 'bold' },
+  lastSeenText: { fontSize: 12, color: '#888', marginTop: 2 }
 });
