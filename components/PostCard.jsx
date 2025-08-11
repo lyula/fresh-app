@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatDurationAgo } from '../utils/time';
+import { incrementPostShareCount } from '../utils/api';
 
 export default function PostCard({ post }) {
   const [menuVisible, setMenuVisible] = useState(false);
@@ -24,13 +25,34 @@ export default function PostCard({ post }) {
   } else if (post.content && typeof post.content === 'object') {
     content = post.content.text || JSON.stringify(post.content);
   }
+
   let likes = 0;
   if (typeof post.likes === 'number') likes = post.likes;
   else if (Array.isArray(post.likes)) likes = post.likes.length;
+
   let comments = 0;
   if (typeof post.comments === 'number') comments = post.comments;
   else if (Array.isArray(post.comments)) comments = post.comments.length;
   else if (Array.isArray(post.replies)) comments = post.replies.length;
+
+  // Share count state
+  const [shareCount, setShareCount] = useState(post.shares || post.shareCount || 0);
+
+  // Update share count if post prop changes
+  useEffect(() => {
+    setShareCount(post.shares || post.shareCount || 0);
+  }, [post.shares, post.shareCount]);
+
+  // Share handler
+  const handleShare = async () => {
+    try {
+      const res = await incrementPostShareCount(post._id || post.id);
+      setShareCount(res.shareCount || (shareCount + 1));
+    } catch (err) {
+      setShareCount(shareCount + 1); // fallback
+    }
+    // TODO: Add actual share logic (native share sheet, etc.)
+  };
 
   return (
     <View>
@@ -77,8 +99,9 @@ export default function PostCard({ post }) {
             <Icon name="comment" size={18} color="#6b7280" />
             <Text style={styles.actionText}>{comments}</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Icon name="share" size={18} color="#6b7280" />
+          <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
+            <Icon name="share" size={16} color="#6b7280" />
+            <Text style={styles.actionText}>{shareCount}</Text>
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
           <View style={styles.impressionsContainer}>

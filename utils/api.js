@@ -1,3 +1,16 @@
+// Increment share count for a post
+export async function incrementPostShareCount(postId) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/share`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) throw new Error('Failed to increment share count');
+  return res.json();
+}
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
