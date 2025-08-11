@@ -76,7 +76,7 @@ export default function PostCard({ post }) {
             <View style={styles.usernameRow}>
               <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
               {author.verified && (
-                <Image source={require('../assets/blue-badge.png')} style={{ width: 16, height: 16 }} />
+                <Image source={require('../assets/blue-badge.png')} style={{ width: 22, height: 22 }} />
               )}
               {author.badge && author.badge.icon && (
                 <View style={styles.badgeRow}>
@@ -84,8 +84,9 @@ export default function PostCard({ post }) {
                   <Text style={styles.badgeText}>{author.badge.name}</Text>
                 </View>
               )}
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.time}>{formatDurationAgo(post.createdAt)}</Text>
             </View>
-            <Text style={styles.time}>{formatDurationAgo(post.createdAt)}</Text>
           </View>
           <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginLeft: 8, padding: 4 }}>
             <MaterialIcons name="more-vert" size={22} color="#888" />
@@ -191,12 +192,13 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     marginRight: 10,
-    marginTop: 12,
+    marginTop: 4,
   },
   usernameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
+    marginTop: 4,
   },
   username: {
     fontWeight: 'bold',
@@ -210,8 +212,8 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   badgeIcon: {
-    width: 16,
-    height: 16,
+    width: 22,
+    height: 22,
     marginRight: 2,
   },
   badgeText: {
