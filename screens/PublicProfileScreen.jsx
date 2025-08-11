@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import MainHeader from '../components/MainHeader';
+import PostCard from '../components/PostCard';
 import { useUser } from '../context/user';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PublicProfileScreen({ route }) {
+  const { user: currentUser } = useUser();
+  const navigation = useNavigation();
+  const routeUsername = route?.params?.username;
+  const [profile, setProfile] = useState(null);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('Posts');
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
+
+  // API base URL
+  const API_BASE =
+    (Constants.manifest?.extra?.API_BASE_URL ||
+      Constants.expoConfig?.extra?.API_BASE_URL ||
+      process.env.API_BASE_URL ||
+      'http://192.168.100.37:5000/api');
+
   // Fetch posts for this user after profile loads
   useEffect(() => {
     if (!profile || !profile._id) return;
@@ -21,23 +38,6 @@ export default function PublicProfileScreen({ route }) {
       .finally(() => { if (isMounted) setLoadingPosts(false); });
     return () => { isMounted = false; };
   }, [profile?._id]);
-  // If route.params?.username is provided, show that user, else show current user
-  const { user: currentUser } = useUser();
-  const navigation = useNavigation();
-  const routeUsername = route?.params?.username;
-  const [profile, setProfile] = useState(null);
-  const [followers, setFollowers] = useState([]);
-  const [following, setFollowing] = useState([]);
-  const [loading, setLoading] = useState(true);
-  // Add state for active tab
-  const [activeTab, setActiveTab] = useState('Posts');
-
-  // API base URL
-  const API_BASE =
-    (Constants.manifest?.extra?.API_BASE_URL ||
-      Constants.expoConfig?.extra?.API_BASE_URL ||
-      process.env.API_BASE_URL ||
-      'http://192.168.100.37:5000/api');
 
   // Determine which username to show
   const usernameToShow = routeUsername || currentUser?.username;
@@ -228,17 +228,15 @@ export default function PublicProfileScreen({ route }) {
           ) : posts.length === 0 ? (
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No posts yet.</Text>
           ) : (
-            <FlatList
-              data={posts}
-              keyExtractor={item => item._id || item.id || String(item.createdAt)}
-              renderItem={({ item }) => (
-                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
-                  <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{item.title || 'Untitled Post'}</Text>
-                  <Text>{item.content || ''}</Text>
-                </View>
-              )}
-              style={{ width: '100%' }}
-            />
+            <View style={{ width: '100%' }}>
+              {posts
+                .filter(post => post.createdAt)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 70)
+                .map(post => (
+                  <PostCard key={post._id || post.id || post.createdAt} post={post} />
+                ))}
+            </View>
           )
         )}
       </ScrollView>
