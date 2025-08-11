@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import StoriesBar from '../components/StoriesBar';
 import SearchUser from '../components/SearchUser';
 import MainHeader from '../components/MainHeader';
@@ -110,7 +111,21 @@ export default function MessagesScreen() {
       time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
     return (
-      <TouchableOpacity style={styles.messageRow} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.messageRow}
+        activeOpacity={0.85}
+        onPress={() => {
+          navigation.navigate('ChatScreen', {
+            user: {
+              _id: userId,
+              username,
+              profileImage: profileImages[userId],
+              verified: item.verified,
+              // Add any other fields needed in ChatScreen
+            }
+          });
+        }}
+      >
         <View style={styles.avatarShadow}>
           <View style={styles.avatarPlaceholder}>
             {/* Avatar image (React Native Image) */}
@@ -142,7 +157,7 @@ export default function MessagesScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
         <MainHeader
           title="Messages"
@@ -173,7 +188,7 @@ export default function MessagesScreen() {
           style={{ flex: 1 }}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 

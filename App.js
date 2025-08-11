@@ -38,6 +38,7 @@ export default function App() {
               <Stack.Screen name="CreatePost" component={require('./screens/CreatePostScreen').default} options={{ title: 'Create Post' }} />
               <Stack.Screen name="MessagesScreen" component={require('./screens/MessagesScreen').default} options={{ title: 'Messages', headerShown: false }} />
               <Stack.Screen name="NotificationsScreen" component={require('./screens/NotificationsScreen').default} options={{ title: 'Notifications', headerShown: false }} />
+              <Stack.Screen name="ChatScreen" component={require('./screens/ChatScreen').default} options={{ title: 'Chat', headerShown: false }} />
               <Stack.Screen name="PublicProfileScreen" component={require('./screens/PublicProfileScreen').default} options={{ title: 'Profile', headerShown: false }} />
             </Stack.Navigator>
             <Sidebar />
