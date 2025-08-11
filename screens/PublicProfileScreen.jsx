@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import { useUser } from '../context/user';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +7,20 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PublicProfileScreen({ route }) {
+  const [posts, setPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(false);
+  // Fetch posts for this user after profile loads
+  useEffect(() => {
+    if (!profile || !profile._id) return;
+    let isMounted = true;
+    setLoadingPosts(true);
+    fetch(`${API_BASE}/posts/by-userid/${profile._id}`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => { if (isMounted) setPosts(Array.isArray(data) ? data : []); })
+      .catch(() => { if (isMounted) setPosts([]); })
+      .finally(() => { if (isMounted) setLoadingPosts(false); });
+    return () => { isMounted = false; };
+  }, [profile?._id]);
   // If route.params?.username is provided, show that user, else show current user
   const { user: currentUser } = useUser();
   const navigation = useNavigation();
@@ -16,6 +29,8 @@ export default function PublicProfileScreen({ route }) {
   const [followers, setFollowers] = useState([]);
   const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
+  // Add state for active tab
+  const [activeTab, setActiveTab] = useState('Posts');
 
   // API base URL
   const API_BASE =
@@ -75,23 +90,51 @@ export default function PublicProfileScreen({ route }) {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <ActivityIndicator size="large" color="#1E3A8A" />
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
+          <MainHeader
+            title={usernameToShow}
+            onCommunity={() => navigation.navigate('PostsFeed')}
+            onMessages={() => navigation.navigate('MessagesScreen')}
+            onNotifications={() => navigation.navigate('NotificationsScreen')}
+            onProfile={() => navigation.navigate('PublicProfileScreen', { username: currentUser?.username })}
+          />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#1E3A8A" />
+        </View>
       </View>
     );
   }
 
   if (!profile) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <Text style={{ color: '#888' }}>User not found.</Text>
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
+          <MainHeader
+            title={usernameToShow}
+            onCommunity={() => navigation.navigate('PostsFeed')}
+            onMessages={() => navigation.navigate('MessagesScreen')}
+            onNotifications={() => navigation.navigate('NotificationsScreen')}
+            onProfile={() => navigation.navigate('PublicProfileScreen', { username: currentUser?.username })}
+          />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: '#888' }}>User not found.</Text>
+        </View>
       </View>
     );
   }
 
   const profileImage = profile.profileImage || profile.avatar || (profile.profile && (profile.profile.profileImage || profile.profile.avatar)) || null;
   const username = profile.username || profile.name || 'User';
-  const bio = profile.bio || (profile.profile && profile.profile.bio) || '';
+  // Fix bio extraction: always use profile.bio if present, else fallback to profile.profile.bio, else empty string
+  let bio = '';
+  if (typeof profile.bio === 'string' && profile.bio.trim() !== '') {
+    bio = profile.bio;
+  } else if (profile.profile && typeof profile.profile.bio === 'string' && profile.profile.bio.trim() !== '') {
+    bio = profile.profile.bio;
+  }
   const website = profile.website || (profile.profile && profile.profile.website) || '';
 
   return (
@@ -106,26 +149,98 @@ export default function PublicProfileScreen({ route }) {
         />
       </View>
       <ScrollView contentContainerStyle={{ paddingTop: 100, paddingBottom: 32, alignItems: 'center' }}>
+        {/* Profile Image Centered */}
         {profileImage && (
-          <Image source={{ uri: profileImage }} style={styles.profileImage} />
+          <Image
+            source={{ uri: profileImage }}
+            style={{
+              width: 90,
+              height: 90,
+              borderRadius: 45,
+              marginTop: 18,
+              marginBottom: 8,
+              backgroundColor: '#e5e7eb',
+              alignSelf: 'center',
+            }}
+          />
         )}
-        <Text style={styles.username}>@{username}</Text>
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{followers.length}</Text>
-            <Text style={styles.statLabel}>Followers</Text>
+        {/* Followers/Following Row Centered Below Image */}
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '70%',
+            marginTop: 8,
+            marginBottom: 8,
+            alignSelf: 'center',
+          }}
+        >
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222' }}>{followers.length}</Text>
+            <Text style={{ fontSize: 13, color: '#888', marginTop: 2 }}>Followers</Text>
           </View>
-          <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{following.length}</Text>
-            <Text style={styles.statLabel}>Following</Text>
+          <View style={{ alignItems: 'center', flex: 1 }}>
+            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#222' }}>{following.length}</Text>
+            <Text style={{ fontSize: 13, color: '#888', marginTop: 2 }}>Following</Text>
           </View>
         </View>
-        {bio ? <Text style={styles.bio}>{bio}</Text> : null}
+        {/* Bio Section */}
+        {bio ? (
+          <View style={{ marginTop: 8, alignSelf: 'center', paddingHorizontal: 18, width: '100%', flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end' }}>
+            <Text style={{ fontWeight: 'bold', color: '#222', marginRight: 2, textAlign: 'center', fontSize: 15, lineHeight: 22 }}>Bio :</Text>
+            <Text style={[styles.bio, { textAlign: 'center', fontSize: 15, lineHeight: 22, marginBottom: 0 }]}>{bio}</Text>
+          </View>
+        ) : null}
+        {/* Website Section */}
         {website ? (
-          <TouchableOpacity onPress={() => Linking.openURL(website)}>
+          <TouchableOpacity
+            onPress={() => Linking.openURL(website)}
+            style={{ marginTop: 12, marginBottom: 32 }}
+          >
             <Text style={styles.website}>{website}</Text>
           </TouchableOpacity>
         ) : null}
+
+        {/* Tabs Row */}
+        <View style={{ flexDirection: 'row', width: '90%', justifyContent: 'space-around', borderBottomWidth: 1, borderBottomColor: '#e5e7eb', marginTop: 10, marginBottom: 10 }}>
+          {['Posts', 'Followers', 'Following'].map(tab => (
+            <TouchableOpacity
+              key={tab}
+              style={{
+                paddingVertical: 10,
+                borderBottomWidth: activeTab === tab ? 2 : 0,
+                borderBottomColor: activeTab === tab ? '#1E3A8A' : 'transparent',
+                flex: 1,
+                alignItems: 'center',
+              }}
+              onPress={() => setActiveTab(tab)}
+            >
+              <Text style={{ fontWeight: activeTab === tab ? 'bold' : 'normal', color: activeTab === tab ? '#1E3A8A' : '#888', fontSize: 15 }}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Tab Content */}
+        {activeTab === 'Posts' && (
+          loadingPosts ? (
+            <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Loading posts...</Text>
+          ) : posts.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No posts yet.</Text>
+          ) : (
+            <FlatList
+              data={posts}
+              keyExtractor={item => item._id || item.id || String(item.createdAt)}
+              renderItem={({ item }) => (
+                <View style={{ padding: 12, borderBottomWidth: 1, borderBottomColor: '#eee' }}>
+                  <Text style={{ fontWeight: 'bold', marginBottom: 4 }}>{item.title || 'Untitled Post'}</Text>
+                  <Text>{item.content || ''}</Text>
+                </View>
+              )}
+              style={{ width: '100%' }}
+            />
+          )
+        )}
       </ScrollView>
     </View>
   );
@@ -145,10 +260,19 @@ const styles = StyleSheet.create({
     color: '#1E3A8A',
     marginBottom: 8,
   },
+  profileRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    width: '85%',
+    marginBottom: 18,
+  },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginBottom: 12,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    marginLeft: 6,
+    gap: 14,
   },
   statBox: {
     alignItems: 'center',
