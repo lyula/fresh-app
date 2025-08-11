@@ -1,3 +1,37 @@
+// Fetch profile images for a list of user IDs or usernames (copied from web client)
+export async function getProfileImages({ userIds = [], usernames = [] }) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/user/profile-images`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ userIds, usernames }),
+  });
+  if (!res.ok) throw new Error('Failed to fetch profile images');
+  return res.json();
+}
+// --- Messaging API (copied from client web logic) ---
+// Get all conversations
+export async function getConversations() {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/message`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch conversations');
+  return res.json();
+}
+
+// Get conversation with a user
+export async function getConversation(userId) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/message/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch conversation');
+  return res.json();
+}
 // Like a post (same as the-app)
 export async function likePost(postId) {
   const token = await AsyncStorage.getItem('token');

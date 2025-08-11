@@ -1,12 +1,10 @@
-  {/* Divider between search and messages */}
-  <View style={{ height: 1, backgroundColor: '#ececec', marginVertical: 4, borderRadius: 1 }} />
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image } from 'react-native';
 import StoriesBar from '../components/StoriesBar';
 import SearchUser from '../components/SearchUser';
 import MainHeader from '../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
-
+import { getConversations, getProfileImages } from '../utils/api';
 
 const messages = [
   { id: '1', user: 'Alice', lastMessage: 'Hey, how are you?', time: '2m ago' },
@@ -15,20 +13,89 @@ const messages = [
   // ...more sample messages
 ];
 
+
 export default function MessagesScreen() {
   const navigation = useNavigation();
-  const renderItem = ({ item }) => (
-    <TouchableOpacity style={styles.messageRow} activeOpacity={0.85}>
-      <View style={styles.avatarShadow}>
-        <View style={styles.avatarPlaceholder} />
-      </View>
-      <View style={styles.messageContent}>
-        <Text style={styles.user}>{item.user}</Text>
-        <Text style={styles.lastMessage} numberOfLines={1}>{item.lastMessage}</Text>
-      </View>
-      <Text style={styles.time}>{item.time}</Text>
-    </TouchableOpacity>
-  );
+  const [loading, setLoading] = useState(true);
+  const [conversations, setConversations] = useState([]);
+  const [profileImages, setProfileImages] = useState({});
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    getConversations()
+      .then(async data => {
+        if (!mounted) return;
+        let convs = Array.isArray(data) ? data : data.conversations || [];
+        setConversations(convs);
+        // Fetch profile images for all users in conversations
+        const userIds = convs.map(c => c._id || (c.user && c.user._id)).filter(Boolean);
+        if (userIds.length) {
+          try {
+            const res = await getProfileImages({ userIds });
+            if (res && res.images) setProfileImages(res.images);
+            else setProfileImages({});
+          } catch {
+            setProfileImages({});
+          }
+        } else {
+          setProfileImages({});
+        }
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message || 'Failed to load messages');
+        setLoading(false);
+      });
+    return () => { mounted = false; };
+  }, []);
+
+  const renderItem = ({ item }) => {
+    // Defensive: Only render strings/numbers in Text
+    const userId = item._id || (item.user && item.user._id);
+    const username = typeof item.username === 'string'
+      ? item.username
+      : (item.user && typeof item.user.username === 'string' ? item.user.username : 'User');
+    // Avatar logic: use fetched image, else DiceBear fallback
+    const avatarUri = profileImages[userId]
+      || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`;
+    // Last message logic: prefer item.lastMessage, then item.text, then [media]
+    let lastMessage = '';
+    if (typeof item.lastMessage === 'string') lastMessage = item.lastMessage;
+    else if (typeof item.text === 'string') lastMessage = item.text;
+    else if (item.mediaUrl) lastMessage = '[media]';
+    else lastMessage = '';
+    // Time logic: prefer item.lastTime, then item.time, then item.createdAt
+    let time = '';
+    if (typeof item.lastTime === 'string') time = item.lastTime;
+    else if (typeof item.time === 'string') time = item.time;
+    else if (item.createdAt) {
+      // Format ISO date to short time
+      const d = new Date(item.createdAt);
+      time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return (
+      <TouchableOpacity style={styles.messageRow} activeOpacity={0.85}>
+        <View style={styles.avatarShadow}>
+          <View style={styles.avatarPlaceholder}>
+            {/* Avatar image (React Native Image) */}
+            <Image
+              source={{ uri: avatarUri }}
+              style={{ width: 44, height: 44, borderRadius: 22, position: 'absolute' }}
+              resizeMode="cover"
+              defaultSource={require('../assets/blue-badge.png')}
+            />
+          </View>
+        </View>
+        <View style={styles.messageContent}>
+          <Text style={styles.user}>{username}</Text>
+          <Text style={styles.lastMessage} numberOfLines={1}>{lastMessage}</Text>
+        </View>
+        <Text style={styles.time}>{time}</Text>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -49,16 +116,21 @@ export default function MessagesScreen() {
       <SearchUser onUserSelect={(user) => { /* handle user selection if needed */ }} />
       {/* Divider between search input and messages */}
       <View style={{ height: 1, backgroundColor: '#ececec', marginVertical: 4, borderRadius: 1 }} />
-      <FlatList
-        data={messages}
-        keyExtractor={item => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ paddingTop: 12, paddingBottom: 12 }}
-        style={{ flex: 1 }}
-      />
+      {loading ? (
+        <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#1E3A8A" />
+      ) : error ? (
+        <Text style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>{error}</Text>
+      ) : (
+        <FlatList
+          data={conversations}
+          keyExtractor={item => item._id || item.id || Math.random().toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingTop: 12, paddingBottom: 12 }}
+          style={{ flex: 1 }}
+        />
+      )}
     </View>
   );
-  // ...existing code...
 }
 
 const styles = StyleSheet.create({
