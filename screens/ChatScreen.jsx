@@ -66,45 +66,49 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-  <View style={[styles.header, { paddingTop: insets.top > 0 ? Math.min(insets.top, 8) : 4, paddingBottom: 0 }]}> {/* Reduced top padding */}
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <Image
-          source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}` }}
-          style={styles.headerAvatar}
-        />
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.headerUsername}>{user.username || 'User'}</Text>
-          {user.verified && (
-            <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
-          )}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 56 + (insets.top || 0) : 0}
+      >
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: insets.top > 0 ? Math.min(insets.top, 8) : 4, paddingBottom: 0 }]}> {/* Reduced top padding */}
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color="#007AFF" />
+          </TouchableOpacity>
+          <Image
+            source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}` }}
+            style={styles.headerAvatar}
+          />
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.headerUsername}>{user.username || 'User'}</Text>
+            {user.verified && (
+              <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
+            )}
+          </View>
         </View>
-      </View>
-      {/* Messages */}
-      {loading ? (
-        <ActivityIndicator style={{ flex: 1 }} size="large" color="#007AFF" />
-      ) : (
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={item => item._id}
-          contentContainerStyle={styles.messagesList}
-          // initialScrollIndex removed to prevent flicker
-          onContentSizeChange={() => {
-            if (flatListRef.current) {
-              flatListRef.current.scrollToEnd({ animated: false });
-            }
-          }}
-          getItemLayout={(data, index) => (
-            {length: 70, offset: 70 * index, index} // 70 is an estimated row height
-          )}
-        />
-      )}
-      {/* Input */}
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/* Messages */}
+        {loading ? (
+          <ActivityIndicator style={{ flex: 1 }} size="large" color="#007AFF" />
+        ) : (
+          <FlatList
+            ref={flatListRef}
+            data={messages}
+            renderItem={renderMessage}
+            keyExtractor={item => item._id}
+            contentContainerStyle={styles.messagesList}
+            // initialScrollIndex removed to prevent flicker
+            onContentSizeChange={() => {
+              if (flatListRef.current) {
+                flatListRef.current.scrollToEnd({ animated: false });
+              }
+            }}
+            getItemLayout={(data, index) => (
+              {length: 70, offset: 70 * index, index} // 70 is an estimated row height
+            )}
+          />
+        )}
+        {/* Input */}
         <View style={styles.inputRow}>
           <TextInput
             style={styles.input}
@@ -142,8 +146,8 @@ const styles = StyleSheet.create({
   ownMessageText: { color: '#fff' },
   time: { fontSize: 11, color: '#888', marginTop: 4, alignSelf: 'flex-end' },
   ownTime: { color: '#e0e0e0' },
-  inputRow: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa' },
-  input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginRight: 8 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 6, paddingBottom: 6, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa', marginBottom: 0 },
+  input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginRight: 8, marginBottom: 0 },
   sendButton: { backgroundColor: '#007AFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   sendText: { color: '#fff', fontWeight: 'bold' },
 });
