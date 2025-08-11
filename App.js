@@ -25,6 +25,7 @@ export default function App() {
               headerTintColor: theme.colors.$primaryBlue,
               headerTitleAlign: 'center',
               headerTitleStyle: { color: theme.colors.$primaryBlue, fontWeight: 'bold' },
+              animation: 'none',
             }}>
               <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Login' }} />
               <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
