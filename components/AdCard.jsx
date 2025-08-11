@@ -65,7 +65,7 @@ export default function AdCard({ ad, onView, onClick }) {
         if (contactMethod === 'link' && linkUrl) {
           return (
             <TouchableOpacity
-              style={[styles.adButton, { backgroundColor: '#a99d6b' }]}
+              style={[styles.adButton, { backgroundColor: '#1E3A8A' }]}
               activeOpacity={0.88}
               onPress={() => {
                 if (linkUrl) {
