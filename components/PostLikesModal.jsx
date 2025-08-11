@@ -8,21 +8,25 @@ export default function PostLikesModal({ visible, postId, onClose }) {
   const [likers, setLikers] = useState([]);
 
 
-  // Only fetch likers when modal is opened for a new postId, but do not clear on every open
+
+  // Only fetch likers when modal is opened for a new postId
   useEffect(() => {
+    let didCancel = false;
     if (visible) {
       setLoading(true);
       getPostLikes(postId)
-        .then(res => setLikers(res.likes || []))
-        .catch(() => setLikers([]))
-        .finally(() => setLoading(false));
+        .then(res => {
+          if (!didCancel) setLikers(res.likes || []);
+        })
+        .catch(() => {
+          if (!didCancel) setLikers([]);
+        })
+        .finally(() => {
+          if (!didCancel) setLoading(false);
+        });
     }
+    return () => { didCancel = true; };
   }, [visible, postId]);
-
-  // Clear likers only when modal is closed
-  useEffect(() => {
-    if (!visible) setLikers([]);
-  }, [visible]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -151,15 +155,17 @@ const styles = StyleSheet.create({
     marginLeft: 2,
   },
   closeBtn: {
-    marginTop: 18,
-    backgroundColor: '#a99d6b',
-    borderRadius: 8,
+    marginTop: 10,
+    marginBottom: 18,
     paddingVertical: 8,
     paddingHorizontal: 24,
+    backgroundColor: '#e5e7eb',
+    borderRadius: 8,
+    alignSelf: 'center',
   },
   closeText: {
-    color: '#fff',
+    fontSize: 16,
+    color: '#333',
     fontWeight: 'bold',
-    fontSize: 15,
   },
 });

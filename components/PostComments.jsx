@@ -121,12 +121,12 @@ export default function PostComments({ postId, visible, onClose }) {
                   <View style={{ flexDirection: 'row', marginTop: 4 }}>
                     {page > 1 && (
                       <TouchableOpacity onPress={() => setReplyPages(p => ({ ...p, [item._id]: page - 1 }))}>
-                        <Text style={{ color: '#2563eb', fontWeight: '500', marginRight: 16 }}>Prev</Text>
+                        <Text style={{ color: '#1E3A8A', fontWeight: '500', marginRight: 16 }}>Prev</Text>
                       </TouchableOpacity>
                     )}
                     {endIdx < replyCount && (
                       <TouchableOpacity onPress={() => setReplyPages(p => ({ ...p, [item._id]: page + 1 }))}>
-                        <Text style={{ color: '#2563eb', fontWeight: '500', marginRight: 16 }}>View more</Text>
+                        <Text style={{ color: '#1E3A8A', fontWeight: '500', marginRight: 16 }}>View more</Text>
                       </TouchableOpacity>
                     )}
                     {shouldShowReplies && (
@@ -141,7 +141,7 @@ export default function PostComments({ postId, visible, onClose }) {
                 </>
               ) : (
                 <TouchableOpacity onPress={() => setShowReplies(r => ({ ...r, [item._id]: true }))}>
-                  <Text style={{ color: '#2563eb', fontWeight: '500', marginTop: 2 }}>
+                  <Text style={{ color: '#1E3A8A', fontWeight: '500', marginTop: 2 }}>
                     View {replyCount} repl{replyCount === 1 ? 'y' : 'ies'}
                   </Text>
                 </TouchableOpacity>
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
   sendBtn: {
     marginLeft: 8,
-    backgroundColor: '#2563eb',
+  backgroundColor: '#1E3A8A',
     borderRadius: 20,
     padding: 8,
   },
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   replyLink: {
-    color: '#2563eb',
+  color: '#1E3A8A',
     fontWeight: '500',
     fontSize: 14,
   },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   replyUsername: {
     fontWeight: 'bold',
-    color: '#2563eb',
+  color: '#1E3A8A',
     fontSize: 14,
     marginBottom: 2,
   },

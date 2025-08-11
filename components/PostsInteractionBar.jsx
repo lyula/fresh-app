@@ -14,10 +14,15 @@ export default function PostsInteractionBar({ likes, comments, shareCount, views
             <Text style={styles.actionText}>{likes}</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.actionBtn} onPress={onComment}>
-          <Icon name="comment" size={18} color="#6b7280" />
-          <Text style={styles.actionText}>{comments}</Text>
-        </TouchableOpacity>
+        <View style={styles.actionBtn}>
+          <TouchableOpacity onPress={onComment}>
+            <Icon name="comment" size={18} color="#6b7280" />
+          </TouchableOpacity>
+          <View style={{ width: 8 }} />
+          <TouchableOpacity onPress={onComment}>
+            <Text style={styles.actionText}>{comments}</Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity style={styles.actionBtn} onPress={onShare}>
           <Icon name="share" size={16} color="#6b7280" />
           <Text style={styles.actionText}>{shareCount}</Text>
