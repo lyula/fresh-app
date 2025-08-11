@@ -25,9 +25,6 @@ export default function ChatScreen() {
       .then(data => {
         setMessages(Array.isArray(data) ? data : []);
         setLoading(false);
-        setTimeout(() => {
-          if (flatListRef.current) flatListRef.current.scrollToEnd({ animated: false });
-        }, 100);
       })
       .catch(() => setLoading(false));
   }, [user]);
@@ -46,14 +43,16 @@ export default function ChatScreen() {
       <View style={[styles.messageRow, isOwn ? styles.ownMessage : styles.otherMessage]}>
         {!isOwn && (
           <Image
-            source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username)}` }}
+            source={{ uri: user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(user.username || 'User')}` }}
             style={styles.avatar}
           />
         )}
         <View style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
-          {item.text ? <Text style={[styles.messageText, isOwn ? styles.ownMessageText : null]}>{item.text}</Text> : null}
+          {typeof item.text === 'string' && item.text.length > 0 ? (
+            <Text style={[styles.messageText, isOwn ? styles.ownMessageText : null]}>{item.text}</Text>
+          ) : null}
           {/* Add media/image/audio rendering here if needed */}
-          <Text style={[styles.time, isOwn ? styles.ownTime : null]}>{formatTime(item.createdAt)}</Text>
+          <Text style={[styles.time, isOwn ? styles.ownTime : null]}>{formatTime(item.createdAt) || ''}</Text>
         </View>
       </View>
     );
@@ -77,7 +76,7 @@ export default function ChatScreen() {
           style={styles.headerAvatar}
         />
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-          <Text style={styles.headerUsername}>{user.username}</Text>
+          <Text style={styles.headerUsername}>{user.username || 'User'}</Text>
           {user.verified && (
             <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
           )}
@@ -93,7 +92,15 @@ export default function ChatScreen() {
           renderItem={renderMessage}
           keyExtractor={item => item._id}
           contentContainerStyle={styles.messagesList}
-          onContentSizeChange={() => flatListRef.current && flatListRef.current.scrollToEnd({ animated: false })}
+          // initialScrollIndex removed to prevent flicker
+          onContentSizeChange={() => {
+            if (flatListRef.current) {
+              flatListRef.current.scrollToEnd({ animated: false });
+            }
+          }}
+          getItemLayout={(data, index) => (
+            {length: 70, offset: 70 * index, index} // 70 is an estimated row height
+          )}
         />
       )}
       {/* Input */}
