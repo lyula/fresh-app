@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { useUser } from '../context/user';
 
 const stories = [
   { id: 'me', user: 'You', seen: false },
@@ -12,12 +13,24 @@ const stories = [
 ];
 
 export default function StoriesBar() {
+  const { user } = useUser();
+  let profileImage = null;
+  if (user) {
+    if (user.profile && (user.profile.profileImage || user.profile.avatar)) {
+      profileImage = user.profile.profileImage || user.profile.avatar;
+    } else if (user.profileImage || user.avatar) {
+      profileImage = user.profileImage || user.avatar;
+    }
+  }
   return (
     <View style={[styles.storiesBarRoot]}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 10, alignItems: 'center' }}>
         {stories.map(story => (
           <View key={story.id} style={styles.storyItem}>
             <View style={[styles.storyAvatar, story.seen ? styles.storySeen : styles.storyUnseen]}>
+              {story.id === 'me' && profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+              ) : null}
               {story.id === 'me' && (
                 <TouchableOpacity style={styles.addButton} activeOpacity={0.7} onPress={() => { /* Add story action */ }}>
                   <Text style={styles.addButtonText}>+</Text>
@@ -57,6 +70,11 @@ const styles = StyleSheet.create({
     color: '#222',
     textAlign: 'center',
     width: 56
+  },
+  profileImage: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
   },
   addButton: {
     position: 'absolute',
