@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, FlatList, StyleSheet, Text, ActivityIndicator, Animated } from 'react-native';
+import { View, FlatList, StyleSheet, Text, ActivityIndicator, Animated, RefreshControl } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
@@ -230,6 +230,15 @@ function PostsFeedScreen() {
             <Text style={{ color: '#888', marginTop: 6 }}>Loading more...</Text>
           </View>
         ) : null}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            progressViewOffset={FEED_HEADER_HEIGHT + 10}
+            colors={["#1E3A8A"]}
+            tintColor="#1E3A8A"
+          />
+        }
       />
 
       {/* Sticky bottom bar with icons, only visible when FeedHeader is hidden */}
