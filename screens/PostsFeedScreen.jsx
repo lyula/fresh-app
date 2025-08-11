@@ -164,7 +164,7 @@ export default function PostsFeedScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           onEndReached={fetchMorePosts}
           onEndReachedThreshold={0.5}
-          ListHeaderComponent={refreshing ? (
+          ListHeaderComponent={(!loading && refreshing) ? (
             <View style={{ alignItems: 'center', padding: 12 }}>
               <ActivityIndicator size="small" color="#888" />
             </View>

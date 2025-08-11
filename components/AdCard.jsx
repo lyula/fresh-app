@@ -64,13 +64,13 @@ export default function AdCard({ ad, onView, onClick }) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#fff', // Match normal post background
     borderRadius: 0,
     marginVertical: 0,
     marginHorizontal: 0,
     width: '100%',
     paddingVertical: 0,
-    paddingHorizontal: 16,
+    paddingHorizontal: 5, // Reduced horizontal padding
     shadowColor: 'transparent',
     elevation: 0,
     borderBottomWidth: 0,

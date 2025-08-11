@@ -265,7 +265,8 @@ const styles = StyleSheet.create({
     width: '100vw',
     marginLeft: -24,
     marginRight: -24,
-    marginVertical: 0,
+    marginTop: 14, // Increased gap below interaction bar
+    marginBottom: 0,
     opacity: 0.7,
   },
   impressionsContainer: {
