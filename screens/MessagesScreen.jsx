@@ -38,7 +38,7 @@ export default function MessagesScreen() {
           onCommunity={() => navigation.navigate('PostsFeed')}
           onMessages={() => navigation.navigate('MessagesScreen')}
           onNotifications={() => navigation.navigate('NotificationsScreen')}
-          onProfile={() => navigation.navigate('ProfileScreen')}
+          onProfile={() => navigation.navigate('PublicProfileScreen')}
         />
       </View>
       {/* Stories feature */}
