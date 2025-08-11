@@ -1,11 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
+// Instagram aspect ratio constants
+const INSTAGRAM_MAX_RATIO = 1.25; // 4:5 portrait
+const INSTAGRAM_MIN_RATIO = 1 / 1.91; // 1.91:1 landscape
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatDurationAgo } from '../utils/time';
 import { incrementPostShareCount } from '../utils/api';
 
 export default function PostCard({ post }) {
+  const screenWidth = Dimensions.get('window').width;
+  const screenHeight = Dimensions.get('window').height;
+  const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
   const [menuVisible, setMenuVisible] = useState(false);
   const handleEdit = () => {
     setMenuVisible(false);
@@ -92,8 +98,33 @@ export default function PostCard({ post }) {
             source={{ uri: post.image }}
             style={[
               styles.postImage,
-              { width: Dimensions.get('window').width, alignSelf: 'center', marginLeft: 0, marginRight: 0 }
+              {
+                width: screenWidth,
+                height: mediaHeight,
+                alignSelf: 'center',
+                marginLeft: 0,
+                marginRight: 0,
+              },
             ]}
+            resizeMode="cover"
+            onLoad={({ nativeEvent }) => {
+              const { width, height } = nativeEvent.source;
+              if (width && height) {
+                const aspectRatio = height / width;
+                let displayHeight = screenWidth * aspectRatio;
+                // Clamp to Instagram's portrait/landscape rules
+                if (aspectRatio > INSTAGRAM_MAX_RATIO) {
+                  displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
+                } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
+                  displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
+                }
+                // Never exceed screen height
+                if (displayHeight > screenHeight) displayHeight = screenHeight;
+                setMediaHeight(displayHeight);
+              } else {
+                setMediaHeight(screenWidth); // fallback to square
+              }
+            }}
           />
         ) : null}
         <View style={styles.actions}>
@@ -212,7 +243,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   postImage: {
-  height: 480,
+    height: 480,
     borderRadius: 0,
     marginBottom: 8,
     backgroundColor: '#f3f4f6',
@@ -224,6 +255,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 12,
+    paddingLeft: 12,
+    paddingRight: 12,
   },
   actionBtn: {
     flexDirection: 'row',
