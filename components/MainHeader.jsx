@@ -12,7 +12,10 @@ const GOLD = '#a99d6b';
 const ICON_COLOR = '#1E3A8A';
 
 
+import { useNavigation } from '@react-navigation/native';
+
 export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, onNotifications, onProfile }) {
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { toggleSidebar } = useSidebar();
   const { user: profile } = useUser();
@@ -34,13 +37,13 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
         <Text style={[styles.title, { color: ICON_COLOR }]}>{title}</Text>
       </View>
       <View style={styles.rightContainer}>
-        <TouchableOpacity style={styles.iconButton} onPress={onCommunity}>
+        <TouchableOpacity style={styles.iconButton} onPress={onCommunity || (() => navigation.navigate('PostsFeed'))}>
           <FA5Icon name="users" size={20} color={ICON_COLOR} solid />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={onMessages}>
+        <TouchableOpacity style={styles.iconButton} onPress={onMessages || (() => navigation.navigate('MessagesScreen'))}>
           <Ionicons name="chatbox" size={22} color={ICON_COLOR} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={onNotifications}>
+        <TouchableOpacity style={styles.iconButton} onPress={onNotifications || (() => navigation.navigate('NotificationsScreen'))}>
           <Icon name="bell" size={20} color={ICON_COLOR} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={onProfile}>
