@@ -31,6 +31,7 @@ export default function App() {
               <Stack.Screen name="Terms" component={TermsScreen} options={{ title: 'Terms & Conditions' }} />
               <Stack.Screen name="PostsFeed" component={require('./screens/PostsFeedScreen').default} options={{ title: 'Feed', headerShown: false }} />
               <Stack.Screen name="CreatePost" component={require('./screens/CreatePostScreen').default} options={{ title: 'Create Post' }} />
+              <Stack.Screen name="MessagesScreen" component={require('./screens/MessagesScreen').default} options={{ title: 'Messages', headerShown: false }} />
             </Stack.Navigator>
             <Sidebar />
             <StatusBar style="auto" />

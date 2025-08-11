@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 0,
     padding: 0,
-    marginBottom: 0,
+  marginBottom: -4,
     marginTop: 18,
     shadowColor: 'transparent',
     shadowOpacity: 0,
@@ -210,14 +210,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
-    paddingTop: 12,
+  paddingTop: 4,
   },
   avatar: {
     width: 32,
     height: 32,
     borderRadius: 16,
     marginRight: 10,
-    marginTop: 4,
+    marginTop: 0,
   },
   usernameRow: {
     flexDirection: 'row',
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     width: '100vw',
     marginLeft: -24,
     marginRight: -24,
-    marginTop: 14, // Increased gap below interaction bar
+    marginTop: 14, // Restored gap below interaction bar
     marginBottom: 0,
     opacity: 0.7,
   },

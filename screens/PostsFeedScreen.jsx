@@ -159,7 +159,7 @@ function PostsFeedScreen() {
     <View style={{ flex: 1, paddingTop: 56 }}>
       {/* MainHeader absolutely at the top, always above FeedHeader */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
-        <MainHeader />
+        <MainHeader onMessages={() => navigation.navigate('MessagesScreen')} />
       </View>
       {/* FeedHeader absolutely below MainHeader, animates under it */}
       <Animated.View
