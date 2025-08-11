@@ -1,31 +1,98 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView } from 'react-native';
+
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import { useUser } from '../context/user';
 import { useNavigation } from '@react-navigation/native';
+import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PublicProfileScreen({ route }) {
-  // If route.params?.user is provided, show that user, else show current user
+  // If route.params?.username is provided, show that user, else show current user
   const { user: currentUser } = useUser();
   const navigation = useNavigation();
-  const user = route?.params?.user || currentUser;
+  const routeUsername = route?.params?.username;
+  const [profile, setProfile] = useState(null);
+  const [followers, setFollowers] = useState([]);
+  const [following, setFollowing] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (!user) {
+  // API base URL
+  const API_BASE =
+    (Constants.manifest?.extra?.API_BASE_URL ||
+      Constants.expoConfig?.extra?.API_BASE_URL ||
+      process.env.API_BASE_URL ||
+      'http://192.168.100.37:5000/api');
+
+  // Determine which username to show
+  const usernameToShow = routeUsername || currentUser?.username;
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchProfileAndCounts() {
+      setLoading(true);
+      try {
+        // Fetch profile, followers, following in parallel
+        const token = await AsyncStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const [profileRes, followersRes, followingRes] = await Promise.all([
+          fetch(`${API_BASE}/user/public/${encodeURIComponent(usernameToShow)}`, { headers }),
+          fetch(`${API_BASE}/user/followers/${encodeURIComponent(usernameToShow)}`),
+          fetch(`${API_BASE}/user/following/${encodeURIComponent(usernameToShow)}`, { headers }),
+        ]);
+        let profileData = null;
+        let followersData = [];
+        let followingData = [];
+        if (profileRes.ok) {
+          profileData = await profileRes.json();
+        }
+        if (followersRes.ok) {
+          const result = await followersRes.json();
+          followersData = result.followers || [];
+        }
+        if (followingRes.ok) {
+          const result = await followingRes.json();
+          followingData = result.following || [];
+        }
+        if (isMounted) {
+          setProfile(profileData);
+          setFollowers(followersData);
+          setFollowing(followingData);
+        }
+      } catch (e) {
+        if (isMounted) {
+          setProfile(null);
+          setFollowers([]);
+          setFollowing([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
+    if (usernameToShow) fetchProfileAndCounts();
+    return () => { isMounted = false; };
+  }, [usernameToShow]);
+
+  if (loading) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
-        <Text style={{ color: '#888' }}>No user data available.</Text>
+        <ActivityIndicator size="large" color="#1E3A8A" />
       </View>
     );
   }
 
-  // Extract profile info
-  const profile = user.profile || user;
-  const profileImage = profile.profileImage || profile.avatar || null;
+  if (!profile) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' }}>
+        <Text style={{ color: '#888' }}>User not found.</Text>
+      </View>
+    );
+  }
+
+  const profileImage = profile.profileImage || profile.avatar || (profile.profile && (profile.profile.profileImage || profile.profile.avatar)) || null;
   const username = profile.username || profile.name || 'User';
-  const bio = profile.bio || '';
-  const website = profile.website || '';
-  const followers = profile.followersCount || profile.followers || 0;
-  const following = profile.followingCount || profile.following || 0;
+  const bio = profile.bio || (profile.profile && profile.profile.bio) || '';
+  const website = profile.website || (profile.profile && profile.profile.website) || '';
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -35,7 +102,7 @@ export default function PublicProfileScreen({ route }) {
           onCommunity={() => navigation.navigate('PostsFeed')}
           onMessages={() => navigation.navigate('MessagesScreen')}
           onNotifications={() => navigation.navigate('NotificationsScreen')}
-          onProfile={() => navigation.navigate('PublicProfileScreen')}
+          onProfile={() => navigation.navigate('PublicProfileScreen', { username: currentUser?.username })}
         />
       </View>
       <ScrollView contentContainerStyle={{ paddingTop: 100, paddingBottom: 32, alignItems: 'center' }}>
@@ -45,11 +112,11 @@ export default function PublicProfileScreen({ route }) {
         <Text style={styles.username}>@{username}</Text>
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{followers}</Text>
+            <Text style={styles.statNumber}>{followers.length}</Text>
             <Text style={styles.statLabel}>Followers</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statNumber}>{following}</Text>
+            <Text style={styles.statNumber}>{following.length}</Text>
             <Text style={styles.statLabel}>Following</Text>
           </View>
         </View>
