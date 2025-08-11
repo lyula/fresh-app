@@ -2,12 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import PostCard from '../components/PostCard';
+import BottomHeader from '../components/BottomHeader';
 import { useUser } from '../context/user';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PublicProfileScreen({ route }) {
+  const scrollRef = React.useRef(null);
+  const [showBottomHeader, setShowBottomHeader] = useState(false);
+
+  // Height after which to show the bottom header (profile info height)
+  const PROFILE_INFO_HEIGHT = 320; // Adjust as needed for your layout
   const { user: currentUser } = useUser();
   const navigation = useNavigation();
   const routeUsername = route?.params?.username;
@@ -148,7 +154,16 @@ export default function PublicProfileScreen({ route }) {
           onProfile={() => navigation.navigate('PublicProfileScreen', { username: currentUser?.username })}
         />
       </View>
-      <ScrollView contentContainerStyle={{ paddingTop: 100, paddingBottom: 32, alignItems: 'center' }}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={{ paddingTop: 100, paddingBottom: 80, alignItems: 'center' }}
+        showsVerticalScrollIndicator={false}
+        onScroll={e => {
+          const y = e.nativeEvent.contentOffset.y;
+          setShowBottomHeader(y > PROFILE_INFO_HEIGHT);
+        }}
+        scrollEventThrottle={16}
+      >
         {/* Profile Image Centered */}
         {profileImage && (
           <Image
@@ -240,6 +255,22 @@ export default function PublicProfileScreen({ route }) {
           )
         )}
       </ScrollView>
+      {showBottomHeader && (
+        <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 30 }}>
+          <BottomHeader
+            onHomePress={() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTo({ y: 0, animated: true });
+              }
+            }}
+            onProfilePress={() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTo({ y: 0, animated: true });
+              }
+            }}
+          />
+        </View>
+      )}
     </View>
   );
 }
