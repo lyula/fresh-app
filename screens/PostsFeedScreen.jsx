@@ -4,116 +4,44 @@ import MainHeader from '../components/MainHeader';
 import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
 import Sidebar from '../components/Sidebar';
-
-import { fetchPosts } from '../utils/api';
-import { fetchAds } from '../utils/ads';
-import { interleaveAds } from '../utils/interleaveAds';
 import AdCard from '../components/AdCard';
 
-
-export default function PostsFeedScreen({ navigation }) {
+// This screen expects posts and ads to be provided as props or from a parent context
+// It does not manage pagination or fetching logic internally
+export default function PostsFeedScreen({ posts = [], ads = [], navigation }) {
   const [activeTab, setActiveTab] = useState('forYou');
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [feed, setFeed] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isFetchingMore, setIsFetchingMore] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
-
-  const [ads, setAds] = useState([]);
-
-  useEffect(() => {
-    let isMounted = true;
-    setLoading(true);
-    fetchInitialPosts({ isInitial: true });
-    return () => { isMounted = false; };
-    // eslint-disable-next-line
-  }, []);
-
-  const fetchInitialPosts = async ({ isInitial = false } = {}) => {
-    if (isInitial) setLoading(true);
-    try {
-      const [posts, fetchedAds] = await Promise.all([
-        fetchPosts({ page: 1, limit: 10 }),
-        fetchAds()
-      ]);
-      const adsArray = Array.isArray(fetchedAds) ? fetchedAds : (fetchedAds.ads || []);
-      console.log('Fetched ads:', adsArray);
-      // Add a dummy ad for testing
-      const dummyAd = {
-        _id: 'dummy-ad-1',
-        title: 'Test Ad Title',
-        description: 'This is a test ad description.',
-        image: 'https://via.placeholder.com/400x200.png?text=Test+Ad',
-        userId: {
-          username: 'adtester',
-          profileImage: 'https://via.placeholder.com/100x100.png?text=User',
-          verified: true
-        }
-      };
-      const adsWithDummy = [...adsArray, dummyAd];
-      setAds(adsWithDummy);
-      const feedData = interleaveAdsWithKeys(posts, adsWithDummy, 0);
-      setFeed(feedData);
-      setPage(2);
-      setHasMore(posts.length === 10);
-    } catch (err) {
-      setError('Failed to load feed');
-      console.error('Error fetching posts or ads:', err);
-    } finally {
-      if (isInitial) setLoading(false);
-    }
+  // RenderItem logic: after every 4th post (after the 3rd), insert an ad from ads array, cycling through ads
+  const renderItem = ({ item, index }) => {
+    const adInterval = 4;
+    const adStart = 3;
+    const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
+    const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
+    const adIndex = adInsertionCount % ads.length;
+    return (
+      <>
+        <PostCard post={item} />
+        {shouldShowAd && (
+          <AdCard ad={ads[adIndex]} />
+        )}
+      </>
+    );
   };
 
-  // Helper to interleave ads with unique keys
-  function interleaveAdsWithKeys(posts, ads, pageOffset = 0) {
-    if (!ads || !ads.length) return posts;
-    const result = [];
-    let adIdx = 0;
-    for (let i = 0; i < posts.length; i++) {
-      result.push(posts[i]);
-      if ((i + 1) % 4 === 0 && i > 2) {
-        const ad = { ...ads[adIdx % ads.length], _isAd: true, _adKey: `ad-${pageOffset}-${adIdx}` };
-        result.push(ad);
-        adIdx++;
-      }
-    }
-    return result;
-  }
-
-  const fetchMorePosts = async () => {
-    if (isFetchingMore || !hasMore) return;
-    setIsFetchingMore(true);
-    try {
-      const posts = await fetchPosts({ page, limit: 10 });
-      if (posts.length > 0) {
-        // Interleave ads into the new batch, offsetting ad keys by page
-        const newFeed = interleaveAdsWithKeys(posts, ads, page);
-        setFeed(prev => [...prev, ...newFeed]);
-        setPage(prev => prev + 1);
-        setHasMore(posts.length === 10);
-      } else {
-        setHasMore(false);
-      }
-    } catch (err) {
-      // Optionally handle error
-    } finally {
-      setIsFetchingMore(false);
-    }
-  };
-
-  // Pull-to-refresh handler
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await fetchInitialPosts({ isInitial: false });
-    } finally {
-      setRefreshing(false);
-    }
-  };
+  return (
+    <View style={{ flex: 1 }}>
+  <MainHeader onMenu={() => setSidebarVisible(!sidebarVisible)} />
+      <FeedHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+      <FlatList
+        data={posts}
+        keyExtractor={(item, idx) => String(item.id || item._id || idx)}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 80 }}
+      />
+      <Sidebar visible={sidebarVisible} onClose={() => setSidebarVisible(false)} navigation={navigation} />
+    </View>
+  );
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
@@ -150,16 +78,24 @@ export default function PostsFeedScreen({ navigation }) {
         </View>
       ) : (
         <FlatList
-          data={feed}
-          keyExtractor={item => {
-            if (item._isAd) {
-              return item._adKey || `ad-${item._id || item.id || Math.random()}`;
-            }
-            return String(item.id || item._id || Math.random());
+          data={posts}
+          keyExtractor={(item, idx) => String(item.id || item._id || idx)}
+          renderItem={({ item, index }) => {
+            // Insert ad every 4th post after the 3rd
+            const adInterval = 4;
+            const adStart = 3;
+            const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
+            const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
+            const adIndex = adInsertionCount % ads.length;
+            return (
+              <>
+                <PostCard post={item} />
+                {shouldShowAd && (
+                  <AdCard ad={ads[adIndex]} />
+                )}
+              </>
+            );
           }}
-          renderItem={({ item }) =>
-            item._isAd ? <AdCard ad={item} /> : <PostCard post={item} />
-          }
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
           onEndReached={fetchMorePosts}
