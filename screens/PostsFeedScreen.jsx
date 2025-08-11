@@ -187,7 +187,7 @@ function PostsFeedScreen() {
         data={posts}
         keyExtractor={(item, idx) => String(item.id || item._id || idx)}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 80 }}
+  contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 70 }}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onEndReached={fetchMorePosts}
@@ -225,7 +225,7 @@ function PostsFeedScreen() {
         }}
         scrollEventThrottle={16}
         ListFooterComponent={isFetchingMore ? (
-          <View style={{ padding: 16, alignItems: 'center' }}>
+          <View style={{ padding: 16, alignItems: 'center', marginBottom: 0 }}>
             <ActivityIndicator size="small" color="#a99d6b" />
             <Text style={{ color: '#888', marginTop: 6 }}>Loading more...</Text>
           </View>
