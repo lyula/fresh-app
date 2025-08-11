@@ -1,3 +1,12 @@
+// Get users who liked a post
+export async function getPostLikes(postId, limit = 100) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/likes?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch post likes');
+  return res.json();
+}
 // Increment share count for a post
 export async function incrementPostShareCount(postId) {
   const token = await getToken();

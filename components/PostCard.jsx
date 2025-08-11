@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
+import PostLikesModal from './PostLikesModal';
+import PostComments from './PostComments';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 // Instagram aspect ratio constants
 const INSTAGRAM_MAX_RATIO = 1.25; // 4:5 portrait
@@ -44,6 +46,9 @@ export default function PostCard({ post }) {
 
   // Share count state
   const [shareCount, setShareCount] = useState(post.shares || post.shareCount || 0);
+  // Modal state
+  const [likesModalVisible, setLikesModalVisible] = useState(false);
+  const [commentsModalVisible, setCommentsModalVisible] = useState(false);
 
   // Update share count if post prop changes
   useEffect(() => {
@@ -60,6 +65,12 @@ export default function PostCard({ post }) {
     }
     // TODO: Add actual share logic (native share sheet, etc.)
   };
+
+  // Modal handlers
+  const handleOpenLikes = () => setLikesModalVisible(true);
+  const handleCloseLikes = () => setLikesModalVisible(false);
+  const handleOpenComments = () => setCommentsModalVisible(true);
+  const handleCloseComments = () => setCommentsModalVisible(false);
 
   return (
     <View>
@@ -132,12 +143,24 @@ export default function PostCard({ post }) {
           comments={comments}
           shareCount={shareCount}
           views={post.views || 0}
-          onLike={() => {}}
-          onComment={() => {}}
+          onLike={handleOpenLikes}
+          onComment={handleOpenComments}
           onShare={handleShare}
         />
       </View>
       {/* Faint horizontal rule below each post */}
+      {/* Likes Modal */}
+      <PostLikesModal
+        visible={likesModalVisible}
+        postId={post._id || post.id}
+        onClose={handleCloseLikes}
+      />
+      {/* Comments Modal */}
+      <PostComments
+        visible={commentsModalVisible}
+        postId={post._id || post.id}
+        onClose={handleCloseComments}
+      />
       <View style={styles.hr} />
       {/* Menu modal */}
       <Modal

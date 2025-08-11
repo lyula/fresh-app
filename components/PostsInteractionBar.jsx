@@ -7,10 +7,13 @@ export default function PostsInteractionBar({ likes, comments, shareCount, views
   return (
     <View style={styles.container}>
       <View style={styles.leftRow}>
-        <TouchableOpacity style={styles.actionBtn} onPress={onLike}>
+        <View style={styles.actionBtn}>
           <Icon name="heart" size={18} color="#e53935" />
-          <Text style={styles.actionText}>{likes}</Text>
-        </TouchableOpacity>
+          <View style={{ width: 8 }} />
+          <TouchableOpacity onPress={onLike}>
+            <Text style={styles.actionText}>{likes}</Text>
+          </TouchableOpacity>
+        </View>
         <TouchableOpacity style={styles.actionBtn} onPress={onComment}>
           <Icon name="comment" size={18} color="#6b7280" />
           <Text style={styles.actionText}>{comments}</Text>
