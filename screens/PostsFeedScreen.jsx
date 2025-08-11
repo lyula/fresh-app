@@ -140,21 +140,6 @@ function PostsFeedScreen() {
     );
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color="#a99d6b" />
-        <Text style={{ marginTop: 12, color: '#888' }}>Loading feed...</Text>
-      </View>
-    );
-  }
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text style={{ color: 'red' }}>{error}</Text>
-      </View>
-    );
-  }
   return (
     <View style={{ flex: 1, paddingTop: 56 }}>
       {/* MainHeader absolutely at the top, always above FeedHeader */}
@@ -182,64 +167,75 @@ function PostsFeedScreen() {
         />
       </Animated.View>
       {/* Feed content starts below both headers */}
-      <FlatList
-        ref={feedRef}
-        data={posts}
-        keyExtractor={(item, idx) => String(item.id || item._id || idx)}
-        renderItem={renderItem}
-  contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 70 }}
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        onEndReached={fetchMorePosts}
-        onEndReachedThreshold={0.5}
-        onScroll={event => {
-          const currentY = event.nativeEvent.contentOffset.y;
-          if (currentY > lastScrollY.current + 10) {
-            Animated.parallel([
-              Animated.timing(feedHeaderAnim, {
-                toValue: -FEED_HEADER_HEIGHT,
-                duration: 220,
-                useNativeDriver: true,
-              }),
-              Animated.timing(feedHeaderOpacity, {
-                toValue: 0,
-                duration: 220,
-                useNativeDriver: true,
-              })
-            ]).start();
-          } else if (currentY < lastScrollY.current - 10) {
-            Animated.parallel([
-              Animated.timing(feedHeaderAnim, {
-                toValue: 0,
-                duration: 220,
-                useNativeDriver: true,
-              }),
-              Animated.timing(feedHeaderOpacity, {
-                toValue: 1,
-                duration: 220,
-                useNativeDriver: true,
-              })
-            ]).start();
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 120 }}>
+          <ActivityIndicator size="large" color="#a99d6b" />
+          <Text style={{ marginTop: 12, color: '#888' }}>Loading feed...</Text>
+        </View>
+      ) : error ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 120 }}>
+          <Text style={{ color: 'red' }}>{error}</Text>
+        </View>
+      ) : (
+        <FlatList
+          ref={feedRef}
+          data={posts}
+          keyExtractor={(item, idx) => String(item.id || item._id || idx)}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 70 }}
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          onEndReached={fetchMorePosts}
+          onEndReachedThreshold={0.5}
+          onScroll={event => {
+            const currentY = event.nativeEvent.contentOffset.y;
+            if (currentY > lastScrollY.current + 10) {
+              Animated.parallel([
+                Animated.timing(feedHeaderAnim, {
+                  toValue: -FEED_HEADER_HEIGHT,
+                  duration: 220,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(feedHeaderOpacity, {
+                  toValue: 0,
+                  duration: 220,
+                  useNativeDriver: true,
+                })
+              ]).start();
+            } else if (currentY < lastScrollY.current - 10) {
+              Animated.parallel([
+                Animated.timing(feedHeaderAnim, {
+                  toValue: 0,
+                  duration: 220,
+                  useNativeDriver: true,
+                }),
+                Animated.timing(feedHeaderOpacity, {
+                  toValue: 1,
+                  duration: 220,
+                  useNativeDriver: true,
+                })
+              ]).start();
+            }
+            lastScrollY.current = currentY;
+          }}
+          scrollEventThrottle={16}
+          ListFooterComponent={isFetchingMore ? (
+            <View style={{ padding: 16, alignItems: 'center', marginBottom: 0 }}>
+              <ActivityIndicator size="small" color="#a99d6b" />
+              <Text style={{ color: '#888', marginTop: 6 }}>Loading more...</Text>
+            </View>
+          ) : null}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              progressViewOffset={FEED_HEADER_HEIGHT + 10}
+              colors={["#1E3A8A"]}
+              tintColor="#1E3A8A"
+            />
           }
-          lastScrollY.current = currentY;
-        }}
-        scrollEventThrottle={16}
-        ListFooterComponent={isFetchingMore ? (
-          <View style={{ padding: 16, alignItems: 'center', marginBottom: 0 }}>
-            <ActivityIndicator size="small" color="#a99d6b" />
-            <Text style={{ color: '#888', marginTop: 6 }}>Loading more...</Text>
-          </View>
-        ) : null}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            progressViewOffset={FEED_HEADER_HEIGHT + 10}
-            colors={["#1E3A8A"]}
-            tintColor="#1E3A8A"
-          />
-        }
-      />
+        />
+      )}
 
       {/* Sticky bottom bar with icons, only visible when FeedHeader is hidden */}
       <Animated.View
@@ -251,15 +247,15 @@ function PostsFeedScreen() {
           }),
         }}
       >
-  <BottomHeader
-    onHomePress={() => {
-      if (feedRef.current) {
-        feedRef.current.scrollToOffset({ offset: 0, animated: true });
-      }
-    }}
-    onMessagesPress={() => {}}
-    onPlusPress={() => navigation.navigate('CreatePost')}
-  />
+        <BottomHeader
+          onHomePress={() => {
+            if (feedRef.current) {
+              feedRef.current.scrollToOffset({ offset: 0, animated: true });
+            }
+          }}
+          onMessagesPress={() => {}}
+          onPlusPress={() => navigation.navigate('CreatePost')}
+        />
       </Animated.View>
     </View>
   );

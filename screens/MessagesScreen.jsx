@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import StoriesBar from '../components/StoriesBar';
 import MainHeader from '../components/MainHeader';
+import { useNavigation } from '@react-navigation/native';
 
 
 const messages = [
@@ -12,6 +13,7 @@ const messages = [
 ];
 
 export default function MessagesScreen() {
+  const navigation = useNavigation();
   const renderItem = ({ item }) => (
     <TouchableOpacity style={styles.messageRow} activeOpacity={0.85}>
       <View style={styles.avatarShadow}>
@@ -28,7 +30,13 @@ export default function MessagesScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
-        <MainHeader title="Messages" />
+        <MainHeader
+          title="Messages"
+          onCommunity={() => navigation.navigate('PostsFeed')}
+          onMessages={() => navigation.navigate('MessagesScreen')}
+          onNotifications={() => navigation.navigate('NotificationsScreen')}
+          onProfile={() => navigation.navigate('ProfileScreen')}
+        />
       </View>
       {/* Stories feature */}
       <View style={{ marginTop: 56 }}>
