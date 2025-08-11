@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   postImage: {
-    height: 180,
+  height: 480,
     borderRadius: 0,
     marginBottom: 8,
     backgroundColor: '#f3f4f6',
