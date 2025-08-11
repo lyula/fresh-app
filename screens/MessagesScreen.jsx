@@ -5,6 +5,8 @@ import SearchUser from '../components/SearchUser';
 import MainHeader from '../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 import { getConversations, getProfileImages } from '../utils/api';
+// Use the same badge as in posts
+import { Image as RNImage } from 'react-native';
 
 const messages = [
   { id: '1', user: 'Alice', lastMessage: 'Hey, how are you?', time: '2m ago' },
@@ -60,18 +62,48 @@ export default function MessagesScreen() {
     // Avatar logic: use fetched image, else DiceBear fallback
     const avatarUri = profileImages[userId]
       || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(username)}`;
-    // Last message logic: prefer item.lastMessage, then item.text, then [media]
+    // Truncate message preview (like web)
+    const truncateMessage = (text, maxLength = 50) => {
+      if (!text) return '';
+      return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+    };
+    // Last message logic: extract from lastMessage object if present (like web)
     let lastMessage = '';
-    if (typeof item.lastMessage === 'string') lastMessage = item.lastMessage;
-    else if (typeof item.text === 'string') lastMessage = item.text;
-    else if (item.mediaUrl) lastMessage = '[media]';
-    else lastMessage = '';
-    // Time logic: prefer item.lastTime, then item.time, then item.createdAt
+    if (item.lastMessage && typeof item.lastMessage === 'object') {
+      if (typeof item.lastMessage.text === 'string' && item.lastMessage.text.trim()) {
+        lastMessage = item.lastMessage.text;
+      } else if (item.lastMessage.mediaUrl) {
+        lastMessage = '[media]';
+      }
+    } else if (typeof item.lastMessage === 'string' && item.lastMessage.trim()) {
+      lastMessage = item.lastMessage;
+    } else if (typeof item.text === 'string' && item.text.trim()) {
+      lastMessage = item.text;
+    } else if (item.mediaUrl) {
+      lastMessage = '[media]';
+    } else {
+      lastMessage = '';
+    }
+    lastMessage = truncateMessage(lastMessage, 50);
+
+    // Time logic: extract from lastMessage.createdAt if present (like web)
     let time = '';
-    if (typeof item.lastTime === 'string') time = item.lastTime;
-    else if (typeof item.time === 'string') time = item.time;
-    else if (item.createdAt) {
-      // Format ISO date to short time
+    if (item.lastMessage && typeof item.lastMessage === 'object' && item.lastMessage.createdAt) {
+      const d = new Date(item.lastMessage.createdAt);
+      // Show relative time (e.g., '2m ago') if desired, else fallback to time string
+      const now = new Date();
+      const diffMs = now - d;
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) time = 'now';
+      else if (diffMins < 60) time = `${diffMins}m ago`;
+      else if (diffMins < 1440) time = `${Math.floor(diffMins / 60)}h ago`;
+      else time = d.toLocaleDateString();
+    } else if (typeof item.lastTime === 'string' && item.lastTime.trim()) {
+      time = item.lastTime;
+    } else if (item.updatedAt) {
+      const d = new Date(item.updatedAt);
+      time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (item.createdAt) {
       const d = new Date(item.createdAt);
       time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
@@ -89,7 +121,17 @@ export default function MessagesScreen() {
           </View>
         </View>
         <View style={styles.messageContent}>
-          <Text style={styles.user}>{username}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Text style={styles.user}>{username}</Text>
+            {item.verified && (
+              <RNImage
+                source={require('../assets/blue-badge.png')}
+                style={{ width: 18, height: 18, marginLeft: 4, marginTop: 2 }}
+                resizeMode="contain"
+                accessibilityLabel="Verified badge"
+              />
+            )}
+          </View>
           <Text style={styles.lastMessage} numberOfLines={1}>{lastMessage}</Text>
         </View>
         <Text style={styles.time}>{time}</Text>
