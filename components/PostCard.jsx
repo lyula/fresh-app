@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { formatDurationAgo } from '../utils/time';
 
 export default function PostCard({ post }) {
@@ -46,7 +46,7 @@ export default function PostCard({ post }) {
             </View>
           )}
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <View style={styles.usernameRow}>
               <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
               {author.verified && (
                 <Image source={require('../assets/blue-badge.png')} style={{ width: 16, height: 16 }} />
@@ -74,7 +74,7 @@ export default function PostCard({ post }) {
             <Text style={styles.actionText}>{likes}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn}>
-            <Icon name="comment" size={18} color="#1E3A8A" />
+            <Icon name="comment" size={18} color="#6b7280" />
             <Text style={styles.actionText}>{comments}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn}>
@@ -82,7 +82,7 @@ export default function PostCard({ post }) {
           </TouchableOpacity>
           <View style={{ flex: 1 }} />
           <View style={styles.impressionsContainer}>
-            <Icon name="eye" size={17} color="#888" />
+            <MaterialCommunityIcons name="chart-bar" size={17} color="#6b7280" />
             <Text style={styles.impressionsText}>{post.views || 0}</Text>
           </View>
         </View>
@@ -141,6 +141,11 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
     marginTop: 12,
+  },
+  usernameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
   },
   username: {
     fontWeight: 'bold',
