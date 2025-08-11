@@ -46,7 +46,7 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
         <TouchableOpacity style={styles.iconButton} onPress={onNotifications || (() => navigation.navigate('NotificationsScreen'))}>
           <Icon name="bell" size={20} color={ICON_COLOR} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconButton} onPress={onProfile}>
+  <TouchableOpacity style={styles.iconButton} onPress={onProfile || (() => navigation.navigate('PublicProfileScreen'))}>
           {profileImage ? (
             <Image
               source={{ uri: profileImage }}
