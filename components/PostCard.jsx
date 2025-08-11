@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   },
   hr: {
     height: 1,
-    backgroundColor: '#ececec',
+    backgroundColor: '#6b7280', // match comments icon color
     width: '100vw',
     marginLeft: -24,
     marginRight: -24,
