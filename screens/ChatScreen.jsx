@@ -1,11 +1,13 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, TextInput, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
+import { useUser } from '../context/user';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getConversation } from '../utils/api';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
 export default function ChatScreen() {
+  const { userId: myUserId } = useUser();
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation();
@@ -39,7 +41,7 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item }) => {
-    const isOwn = item.from === user.myUserId; // Replace with actual user id logic
+    const isOwn = item.from === myUserId;
     return (
       <View style={[styles.messageRow, isOwn ? styles.ownMessage : styles.otherMessage]}>
         {!isOwn && (
@@ -48,10 +50,10 @@ export default function ChatScreen() {
             style={styles.avatar}
           />
         )}
-        <View style={styles.bubble}>
-          {item.text ? <Text style={styles.messageText}>{item.text}</Text> : null}
+        <View style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
+          {item.text ? <Text style={[styles.messageText, isOwn ? styles.ownMessageText : null]}>{item.text}</Text> : null}
           {/* Add media/image/audio rendering here if needed */}
-          <Text style={styles.time}>{formatTime(item.createdAt)}</Text>
+          <Text style={[styles.time, isOwn ? styles.ownTime : null]}>{formatTime(item.createdAt)}</Text>
         </View>
       </View>
     );
@@ -59,16 +61,8 @@ export default function ChatScreen() {
 
   const formatTime = (timestamp) => {
     const d = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now - d;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffMins < 1440) return `${Math.floor(diffMins / 60)}h ago`;
-    if (diffMins < 10080) return `${Math.floor(diffMins / 1440)}d ago`;
-    if (diffMins < 43200) return `${Math.floor(diffMins / 10080)}w ago`;
-    if (diffMins < 525600) return `${Math.floor(diffMins / 43200)}mo ago`;
-    return `${Math.floor(diffMins / 525600)}y ago`;
+    // Format as HH:mm in user's local time
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -131,12 +125,16 @@ const styles = StyleSheet.create({
   verifiedBadge: { width: 14, height: 14, marginLeft: 4, alignSelf: 'center' },
   messagesList: { padding: 12, paddingBottom: 24 },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10 },
-  ownMessage: { justifyContent: 'flex-end' },
-  otherMessage: { justifyContent: 'flex-start' },
-  avatar: { width: 28, height: 28, borderRadius: 14, marginRight: 8 },
-  bubble: { backgroundColor: '#f1f0f0', borderRadius: 16, padding: 10, maxWidth: '80%' },
+  ownMessage: { justifyContent: 'flex-end', flexDirection: 'row' },
+  otherMessage: { justifyContent: 'flex-start', flexDirection: 'row' },
+  avatar: { width: 28, height: 28, borderRadius: 14, marginRight: 8, marginLeft: 0 },
+  bubble: { borderRadius: 16, padding: 10, maxWidth: '80%' },
+  ownBubble: { backgroundColor: '#007AFF', marginLeft: 40, marginRight: 0, alignSelf: 'flex-end' },
+  otherBubble: { backgroundColor: '#f1f0f0', marginRight: 40, marginLeft: 0, alignSelf: 'flex-start' },
   messageText: { fontSize: 15 },
+  ownMessageText: { color: '#fff' },
   time: { fontSize: 11, color: '#888', marginTop: 4, alignSelf: 'flex-end' },
+  ownTime: { color: '#e0e0e0' },
   inputRow: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa' },
   input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginRight: 8 },
   sendButton: { backgroundColor: '#007AFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
