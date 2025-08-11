@@ -23,10 +23,19 @@ export default function ChatScreen() {
     setLoading(true);
     getConversation(user._id)
       .then(data => {
-        setMessages(Array.isArray(data) ? data : []);
+        if (Array.isArray(data)) {
+          setMessages(data);
+        } else if (data && Array.isArray(data.messages)) {
+          setMessages(data.messages);
+        } else {
+          setMessages([]);
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        setMessages([]);
+        setLoading(false);
+      });
   }, [user]);
 
   const handleSend = async () => {
@@ -38,6 +47,7 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item }) => {
+    if (!item || typeof item !== 'object' || !('from' in item)) return null;
     const isOwn = item.from === myUserId;
     return (
       <View style={[styles.messageRow, isOwn ? styles.ownMessage : styles.otherMessage]}>
@@ -49,10 +59,10 @@ export default function ChatScreen() {
         )}
         <View style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
           {typeof item.text === 'string' && item.text.length > 0 ? (
-            <Text style={[styles.messageText, isOwn ? styles.ownMessageText : null]}>{item.text}</Text>
+            <Text style={[styles.messageText, isOwn ? styles.ownMessageText : null]}>{String(item.text)}</Text>
           ) : null}
           {/* Add media/image/audio rendering here if needed */}
-          <Text style={[styles.time, isOwn ? styles.ownTime : null]}>{formatTime(item.createdAt) || ''}</Text>
+          <Text style={[styles.time, isOwn ? styles.ownTime : null]}>{String(formatTime(item.createdAt) || '')}</Text>
         </View>
       </View>
     );
@@ -81,7 +91,7 @@ export default function ChatScreen() {
             style={styles.headerAvatar}
           />
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.headerUsername}>{user.username || 'User'}</Text>
+            <Text style={styles.headerUsername}>{typeof user.username === 'string' ? user.username : 'User'}</Text>
             {user.verified && (
               <Image source={require('../assets/blue-badge.png')} style={styles.verifiedBadge} />
             )}
@@ -93,9 +103,9 @@ export default function ChatScreen() {
         ) : (
           <FlatList
             ref={flatListRef}
-            data={messages}
+            data={Array.isArray(messages) ? messages.filter(m => m && typeof m === 'object' && 'from' in m) : []}
             renderItem={renderMessage}
-            keyExtractor={item => item._id}
+            keyExtractor={item => (item && typeof item === 'object' && item._id ? String(item._id) : Math.random().toString(36))}
             contentContainerStyle={styles.messagesList}
             // initialScrollIndex removed to prevent flicker
             onContentSizeChange={() => {
@@ -133,7 +143,7 @@ const styles = StyleSheet.create({
   backText: { fontSize: 22, color: '#007AFF' },
   headerAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 8 },
   headerUsername: { fontWeight: 'bold', fontSize: 16, lineHeight: 20 },
-  verifiedBadge: { width: 14, height: 14, marginLeft: 4, alignSelf: 'center' },
+  verifiedBadge: { width: 20, height: 20, marginLeft: 0, alignSelf: 'center' },
   messagesList: { padding: 12, paddingBottom: 24 },
   messageRow: { flexDirection: 'row', alignItems: 'flex-end', marginBottom: 10 },
   ownMessage: { justifyContent: 'flex-end', flexDirection: 'row' },
@@ -147,7 +157,7 @@ const styles = StyleSheet.create({
   time: { fontSize: 11, color: '#888', marginTop: 4, alignSelf: 'flex-end' },
   ownTime: { color: '#e0e0e0' },
   inputRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingTop: 6, paddingBottom: 6, borderTopWidth: 1, borderColor: '#eee', backgroundColor: '#fafafa', marginBottom: 0 },
-  input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8, marginRight: 8, marginBottom: 0 },
+  input: { flex: 1, fontSize: 16, backgroundColor: '#f5f5f5', borderRadius: 20, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 20, marginRight: 8, marginBottom: 0 },
   sendButton: { backgroundColor: '#007AFF', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 8 },
   sendText: { color: '#fff', fontWeight: 'bold' },
 });

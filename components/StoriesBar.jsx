@@ -37,7 +37,7 @@ export default function StoriesBar() {
                 </TouchableOpacity>
               )}
             </View>
-            <Text style={styles.storyUser} numberOfLines={1}>{story.user}</Text>
+            <Text style={styles.storyUser} numberOfLines={1}>{typeof story.user === 'string' ? story.user : ''}</Text>
           </View>
         ))}
       </ScrollView>
@@ -48,8 +48,8 @@ export default function StoriesBar() {
 const styles = StyleSheet.create({
   storyItem: {
     alignItems: 'center',
-    marginRight: 18,
-    width: 60
+    marginRight: 10, // reduced space between stories
+    width: 56 // slightly reduced width
   },
   storyAvatar: {
     width: 52,
@@ -97,8 +97,9 @@ const styles = StyleSheet.create({
     lineHeight: 22
   },
   storiesBarRoot: {
-    marginTop: 26,
-    paddingVertical: 8,
+    marginTop: 8, // reduced space above stories
+    paddingTop: 1, // further reduce top padding
+    paddingBottom: 4,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#ececec',
