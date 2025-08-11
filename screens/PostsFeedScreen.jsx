@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text } from 'react-native';
+import { View, FlatList, StyleSheet, Text, ActivityIndicator } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
@@ -11,33 +11,59 @@ import { interleaveAds } from '../utils/interleaveAds';
 import AdCard from '../components/AdCard';
 
 
-
 export default function PostsFeedScreen({ navigation }) {
   const [activeTab, setActiveTab] = useState('forYou');
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    Promise.all([fetchPosts(), fetchAds()])
-      .then(([posts, ads]) => {
-        if (!isMounted) return;
-        const feedData = interleaveAds(posts, ads);
-        setFeed(feedData);
-      })
-      .catch(err => {
-        if (!isMounted) return;
-        setError('Failed to load feed');
-      })
-      .finally(() => {
-        if (!isMounted) return;
-        setLoading(false);
-      });
+    fetchInitialPosts();
     return () => { isMounted = false; };
+    // eslint-disable-next-line
   }, []);
+
+  const fetchInitialPosts = async () => {
+    try {
+      const [posts, ads] = await Promise.all([
+        fetchPosts({ page: 1, limit: 10 }),
+        fetchAds()
+      ]);
+      const feedData = interleaveAds(posts, ads);
+      setFeed(feedData);
+      setPage(2);
+      setHasMore(posts.length === 10);
+    } catch (err) {
+      setError('Failed to load feed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchMorePosts = async () => {
+    if (isFetchingMore || !hasMore) return;
+    setIsFetchingMore(true);
+    try {
+      const posts = await fetchPosts({ page, limit: 10 });
+      if (posts.length > 0) {
+        setFeed(prev => [...prev, ...posts]);
+        setPage(prev => prev + 1);
+        setHasMore(posts.length === 10);
+      } else {
+        setHasMore(false);
+      }
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setIsFetchingMore(false);
+    }
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
@@ -81,6 +107,14 @@ export default function PostsFeedScreen({ navigation }) {
           }
           contentContainerStyle={styles.feedContent}
           showsVerticalScrollIndicator={false}
+          onEndReached={fetchMorePosts}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={isFetchingMore ? (
+            <View style={{ alignItems: 'center', padding: 16 }}>
+              <ActivityIndicator size="small" color="#888" style={{ marginBottom: 8 }} />
+              <Text style={{ color: '#888' }}>Loading more...</Text>
+            </View>
+          ) : null}
         />
       )}
     </View>

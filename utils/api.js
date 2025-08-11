@@ -24,9 +24,9 @@ async function getToken() {
   return await AsyncStorage.getItem('token');
 }
 
-export async function fetchPosts() {
+export async function fetchPosts({ page = 1, limit = 10 } = {}) {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/posts`, {
+  const res = await fetch(`${API_BASE}/posts?page=${page}&limit=${limit}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch posts');
