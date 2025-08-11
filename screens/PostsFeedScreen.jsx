@@ -19,6 +19,7 @@ function PostsFeedScreen() {
   const feedHeaderAnim = useRef(new Animated.Value(0)).current; // 0: visible, -60: hidden
   const feedHeaderOpacity = useRef(new Animated.Value(1)).current;
   const FEED_HEADER_HEIGHT = 56;
+  const feedRef = useRef(null);
   // Removed animation logic for FeedHeader
   const [posts, setPosts] = useState([]);
   const [ads, setAds] = useState([]);
@@ -182,6 +183,7 @@ function PostsFeedScreen() {
       </Animated.View>
       {/* Feed content starts below both headers */}
       <FlatList
+        ref={feedRef}
         data={posts}
         keyExtractor={(item, idx) => String(item.id || item._id || idx)}
         renderItem={renderItem}
@@ -241,6 +243,11 @@ function PostsFeedScreen() {
         }}
       >
   <BottomHeader
+    onHomePress={() => {
+      if (feedRef.current) {
+        feedRef.current.scrollToOffset({ offset: 0, animated: true });
+      }
+    }}
     onMessagesPress={() => {}}
     onPlusPress={() => navigation.navigate('CreatePost')}
   />
