@@ -90,14 +90,16 @@ export default function MessagesScreen() {
     let time = '';
     if (item.lastMessage && typeof item.lastMessage === 'object' && item.lastMessage.createdAt) {
       const d = new Date(item.lastMessage.createdAt);
-      // Show relative time (e.g., '2m ago') if desired, else fallback to time string
       const now = new Date();
       const diffMs = now - d;
       const diffMins = Math.floor(diffMs / 60000);
       if (diffMins < 1) time = 'now';
       else if (diffMins < 60) time = `${diffMins}m ago`;
       else if (diffMins < 1440) time = `${Math.floor(diffMins / 60)}h ago`;
-      else time = d.toLocaleDateString();
+      else if (diffMins < 10080) time = `${Math.floor(diffMins / 1440)}d ago`;
+      else if (diffMins < 43200) time = `${Math.floor(diffMins / 10080)}w ago`;
+      else if (diffMins < 525600) time = `${Math.floor(diffMins / 43200)}mo ago`;
+      else time = `${Math.floor(diffMins / 525600)}y ago`;
     } else if (typeof item.lastTime === 'string' && item.lastTime.trim()) {
       time = item.lastTime;
     } else if (item.updatedAt) {
