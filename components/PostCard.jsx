@@ -5,6 +5,7 @@ const INSTAGRAM_MAX_RATIO = 1.25; // 4:5 portrait
 const INSTAGRAM_MIN_RATIO = 1 / 1.91; // 1.91:1 landscape
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
+import PostsInteractionBar from './PostsInteractionBar';
 import { formatDurationAgo } from '../utils/time';
 import { incrementPostShareCount } from '../utils/api';
 
@@ -127,25 +128,15 @@ export default function PostCard({ post }) {
             }}
           />
         ) : null}
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Icon name="heart" size={18} color="#e53935" />
-            <Text style={styles.actionText}>{likes}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn}>
-            <Icon name="comment" size={18} color="#6b7280" />
-            <Text style={styles.actionText}>{comments}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleShare}>
-            <Icon name="share" size={16} color="#6b7280" />
-            <Text style={styles.actionText}>{shareCount}</Text>
-          </TouchableOpacity>
-          <View style={{ flex: 1 }} />
-          <View style={styles.impressionsContainer}>
-            <MaterialCommunityIcons name="chart-bar" size={17} color="#6b7280" />
-            <Text style={styles.impressionsText}>{post.views || 0}</Text>
-          </View>
-        </View>
+        <PostsInteractionBar
+          likes={likes}
+          comments={comments}
+          shareCount={shareCount}
+          views={post.views || 0}
+          onLike={() => {}}
+          onComment={() => {}}
+          onShare={handleShare}
+        />
       </View>
       {/* Faint horizontal rule below each post */}
       <View style={styles.hr} />
