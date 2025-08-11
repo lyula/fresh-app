@@ -76,7 +76,7 @@ export default function PostCard({ post }) {
             <View style={styles.usernameRow}>
               <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
               {author.verified && (
-                <Image source={require('../assets/blue-badge.png')} style={{ width: 22, height: 22 }} />
+                <Image source={require('../assets/blue-badge.png')} style={{ width: 16, height: 16 }} />
               )}
               {author.badge && author.badge.icon && (
                 <View style={styles.badgeRow}>
