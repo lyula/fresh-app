@@ -1,16 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Text, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, FlatList, StyleSheet, Text, ActivityIndicator, Animated } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
 import AdCard from '../components/AdCard';
+import BottomHeader from '../components/BottomHeader';
 import { fetchPosts } from '../utils/api';
 import { fetchAds } from '../utils/ads';
 
 // This screen expects posts and ads to be provided as props or from a parent context
 // It does not manage pagination or fetching logic internally
-export default function PostsFeedScreen() {
+
+function PostsFeedScreen() {
   const [activeTab, setActiveTab] = useState('forYou');
+  const lastScrollY = useRef(0);
+  const feedHeaderAnim = useRef(new Animated.Value(0)).current; // 0: visible, -60: hidden
+  const feedHeaderOpacity = useRef(new Animated.Value(1)).current;
+  const FEED_HEADER_HEIGHT = 56;
+  // Removed animation logic for FeedHeader
   const [posts, setPosts] = useState([]);
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -146,18 +153,69 @@ export default function PostsFeedScreen() {
     );
   }
   return (
-    <View style={{ flex: 1 }}>
-      <MainHeader />
-      <FeedHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+    <View style={{ flex: 1, paddingTop: 56 }}>
+      {/* MainHeader absolutely at the top, always above FeedHeader */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
+        <MainHeader />
+      </View>
+      {/* FeedHeader absolutely below MainHeader, animates under it */}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          top: 56, // height of MainHeader
+          left: 0,
+          right: 0,
+          marginTop: 25,
+          transform: [{ translateY: feedHeaderAnim }],
+          opacity: feedHeaderOpacity,
+          zIndex: 10,
+        }}
+        pointerEvents="box-none"
+      >
+        <FeedHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+      </Animated.View>
+      {/* Feed content starts below both headers */}
       <FlatList
         data={posts}
         keyExtractor={(item, idx) => String(item.id || item._id || idx)}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 80 }}
+        contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 80 }}
         refreshing={refreshing}
         onRefresh={onRefresh}
         onEndReached={fetchMorePosts}
         onEndReachedThreshold={0.5}
+        onScroll={event => {
+          const currentY = event.nativeEvent.contentOffset.y;
+          if (currentY > lastScrollY.current + 10) {
+            Animated.parallel([
+              Animated.timing(feedHeaderAnim, {
+                toValue: -FEED_HEADER_HEIGHT,
+                duration: 220,
+                useNativeDriver: true,
+              }),
+              Animated.timing(feedHeaderOpacity, {
+                toValue: 0,
+                duration: 220,
+                useNativeDriver: true,
+              })
+            ]).start();
+          } else if (currentY < lastScrollY.current - 10) {
+            Animated.parallel([
+              Animated.timing(feedHeaderAnim, {
+                toValue: 0,
+                duration: 220,
+                useNativeDriver: true,
+              }),
+              Animated.timing(feedHeaderOpacity, {
+                toValue: 1,
+                duration: 220,
+                useNativeDriver: true,
+              })
+            ]).start();
+          }
+          lastScrollY.current = currentY;
+        }}
+        scrollEventThrottle={16}
         ListFooterComponent={isFetchingMore ? (
           <View style={{ padding: 16, alignItems: 'center' }}>
             <ActivityIndicator size="small" color="#a99d6b" />
@@ -165,84 +223,21 @@ export default function PostsFeedScreen() {
           </View>
         ) : null}
       />
-    </View>
-  );
 
-  return (
-    <View style={{ flex: 1, backgroundColor: '#f8fafc' }}>
-      <MainHeader
-        onMenu={() => setSidebarVisible(true)}
-        onCommunity={() => {}}
-        onMessages={() => {}}
-        onNotifications={() => {}}
-        onProfile={() => {}}
-      />
-      <Sidebar
-        visible={sidebarVisible}
-        onClose={() => setSidebarVisible(false)}
-        onNavigate={route => {
-          setSidebarVisible(false);
-          if (route === 'Login') {
-            navigation.replace('Login');
-          }
+      {/* Sticky bottom bar with icons, only visible when FeedHeader is hidden */}
+      <Animated.View
+        pointerEvents="box-none"
+        style={{
+          opacity: feedHeaderOpacity.interpolate({
+            inputRange: [0, 1],
+            outputRange: [1, 0],
+          }),
         }}
-      />
-      <FeedHeader
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onSearch={() => {}}
-        onCreatePost={() => {}}
-      />
-      {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: '#888' }}>Loading feed...</Text>
-        </View>
-      ) : error ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ color: 'red' }}>{error}</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={posts}
-          keyExtractor={(item, idx) => String(item.id || item._id || idx)}
-          renderItem={({ item, index }) => {
-            // Insert ad every 4th post after the 3rd
-            const adInterval = 4;
-            const adStart = 3;
-            const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
-            const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
-            const adIndex = adInsertionCount % ads.length;
-            return (
-              <>
-                <PostCard post={item} />
-                {shouldShowAd && (
-                  <AdCard ad={ads[adIndex]} />
-                )}
-              </>
-            );
-          }}
-          contentContainerStyle={styles.feedContent}
-          showsVerticalScrollIndicator={false}
-          onEndReached={fetchMorePosts}
-          onEndReachedThreshold={0.5}
-          ListHeaderComponent={(!loading && refreshing) ? (
-            <View style={{ alignItems: 'center', padding: 12 }}>
-              <ActivityIndicator size="small" color="#888" />
-            </View>
-          ) : null}
-          ListFooterComponent={isFetchingMore ? (
-            <View style={{ alignItems: 'center', padding: 16 }}>
-              <ActivityIndicator size="small" color="#888" style={{ marginBottom: 8 }} />
-              <Text style={{ color: '#888' }}>Loading more...</Text>
-            </View>
-          ) : null}
-          refreshing={refreshing}
-          onRefresh={onRefresh}
-        />
-      )}
+      >
+  <BottomHeader onMessagesPress={() => {}} />
+      </Animated.View>
     </View>
   );
-}
 
 const styles = StyleSheet.create({
   feedContent: {
@@ -251,3 +246,6 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
 });
+}
+
+export default PostsFeedScreen;

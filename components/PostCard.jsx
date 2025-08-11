@@ -76,7 +76,7 @@ export default function PostCard({ post }) {
             <View style={styles.usernameRow}>
               <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
               {author.verified && (
-                <Image source={require('../assets/blue-badge.png')} style={{ width: 16, height: 16 }} />
+                <Image source={require('../assets/blue-badge.png')} style={{ width: 20, height: 20 }} />
               )}
               {author.badge && author.badge.icon && (
                 <View style={styles.badgeRow}>
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     padding: 0,
     marginBottom: 0,
+    marginTop: 18,
     shadowColor: 'transparent',
     shadowOpacity: 0,
     shadowRadius: 0,
@@ -221,14 +222,14 @@ const styles = StyleSheet.create({
     color: '#1E3A8A',
     marginRight: 2,
   },
-  dot: {
-    color: '#888',
-    fontSize: 14,
-    marginHorizontal: 4,
-  },
-  time: {
-    fontSize: 12,
-    color: '#888',
+  hr: {
+    height: 2,
+    backgroundColor: '#bdbdbd', // darker gray for more contrast
+    width: '100%',
+    marginTop: 10,
+    marginBottom: 18,
+    alignSelf: 'center',
+    opacity: 1,
   },
   content: {
     fontSize: 15,

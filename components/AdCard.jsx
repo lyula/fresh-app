@@ -119,15 +119,17 @@ export default function AdCard({ ad, onView, onClick }) {
         return null;
       })()}
 
-      <PostsInteractionBar
-        likes={ad.likes || 0}
-        comments={ad.comments || 0}
-        shareCount={ad.shares || 0}
-        views={ad.views || 0}
-        onLike={() => {}}
-        onComment={() => {}}
-        onShare={() => {}}
-      />
+      <View style={{ paddingBottom: 16 }}>
+        <PostsInteractionBar
+          likes={ad.likes || 0}
+          comments={ad.comments || 0}
+          shareCount={ad.shares || 0}
+          views={ad.views || 0}
+          onLike={() => {}}
+          onComment={() => {}}
+          onShare={() => {}}
+        />
+      </View>
     </TouchableOpacity>
   );
 }
