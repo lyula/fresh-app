@@ -5,6 +5,7 @@ import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
 import AdCard from '../components/AdCard';
 import BottomHeader from '../components/BottomHeader';
+import { useNavigation } from '@react-navigation/native';
 import { fetchPosts } from '../utils/api';
 import { fetchAds } from '../utils/ads';
 
@@ -12,6 +13,7 @@ import { fetchAds } from '../utils/ads';
 // It does not manage pagination or fetching logic internally
 
 function PostsFeedScreen() {
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('forYou');
   const lastScrollY = useRef(0);
   const feedHeaderAnim = useRef(new Animated.Value(0)).current; // 0: visible, -60: hidden
@@ -172,7 +174,11 @@ function PostsFeedScreen() {
         }}
         pointerEvents="box-none"
       >
-        <FeedHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+        <FeedHeader
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onCreatePost={() => navigation.navigate('CreatePost')}
+        />
       </Animated.View>
       {/* Feed content starts below both headers */}
       <FlatList
@@ -234,7 +240,10 @@ function PostsFeedScreen() {
           }),
         }}
       >
-  <BottomHeader onMessagesPress={() => {}} />
+  <BottomHeader
+    onMessagesPress={() => {}}
+    onPlusPress={() => navigation.navigate('CreatePost')}
+  />
       </Animated.View>
     </View>
   );

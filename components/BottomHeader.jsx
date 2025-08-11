@@ -11,7 +11,7 @@ const LINK_COLOR = '#1E3A8A';
 const GOLD = '#a99d6b';
 
 // You can pass navigation or callback props as needed
-export default function BottomHeader({ onHomePress, onDiscoverPress, onSettingsPress, onProfilePress, onMessagesPress = () => {} }) {
+export default function BottomHeader({ onHomePress, onDiscoverPress, onSettingsPress, onProfilePress, onMessagesPress = () => {}, onPlusPress = () => {} }) {
   return (
     <View style={styles.container}>
       {/* Home icon */}
@@ -24,7 +24,7 @@ export default function BottomHeader({ onHomePress, onDiscoverPress, onSettingsP
         <Feather name="plus-circle" size={18} color={LINK_COLOR} style={styles.plusIcon} />
       </TouchableOpacity>
       {/* Plus icon in gold color */}
-      <TouchableOpacity>
+      <TouchableOpacity onPress={onPlusPress}>
         <Feather name="plus" size={28} color={GOLD} />
       </TouchableOpacity>
       {/* Search icon */}

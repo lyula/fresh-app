@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 const GOLD = '#a99d6b';
 const LINK_COLOR = '#1E3A8A';
 
-export default function FeedHeader({ activeTab, setActiveTab, onSearch, onCreatePost }) {
+export default function FeedHeader({ activeTab, setActiveTab, onSearch = () => {}, onCreatePost = () => {} }) {
   return (
     <View style={styles.container}>  
       <View style={styles.tabsContainer}>
