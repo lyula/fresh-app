@@ -1,6 +1,9 @@
+  {/* Divider between search and messages */}
+  <View style={{ height: 1, backgroundColor: '#ececec', marginVertical: 4, borderRadius: 1 }} />
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
 import StoriesBar from '../components/StoriesBar';
+import SearchUser from '../components/SearchUser';
 import MainHeader from '../components/MainHeader';
 import { useNavigation } from '@react-navigation/native';
 
@@ -42,11 +45,15 @@ export default function MessagesScreen() {
       <View style={{ marginTop: 56 }}>
         <StoriesBar />
       </View>
+      {/* Search user feature */}
+      <SearchUser onUserSelect={(user) => { /* handle user selection if needed */ }} />
+      {/* Divider between search input and messages */}
+      <View style={{ height: 1, backgroundColor: '#ececec', marginVertical: 4, borderRadius: 1 }} />
       <FlatList
         data={messages}
         keyExtractor={item => item.id}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingTop: 120, paddingBottom: 12 }}
+        contentContainerStyle={{ paddingTop: 12, paddingBottom: 12 }}
         style={{ flex: 1 }}
       />
     </View>
@@ -58,14 +65,12 @@ const styles = StyleSheet.create({
   messageRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 13,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ececec',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    marginHorizontal: 8,
-    marginBottom: 4,
+    borderRadius: 12,
+    marginHorizontal: 2,
+    marginBottom: 2,
     shadowColor: '#000',
     shadowOpacity: 0.03,
     shadowRadius: 2,
