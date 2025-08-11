@@ -1,16 +1,20 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useUser } from '../context/user';
 import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
-import { getPostById, getPostComments, getTotalCommentCount } from '../utils/api';
+import { getPostById, getPostComments, getTotalCommentCount, likePost } from '../utils/api';
 import { Ionicons, Feather } from '@expo/vector-icons';
 // Use the exact badge URI and style as post author badge
 const VERIFIED_BADGE_URI = 'https://zack-lyula-portfolio.vercel.app/images/blue-badge.png';
 const VERIFIED_BADGE_STYLE = { width: 18, height: 18, marginLeft: 1 };
 
 export default function PostComments({ postId, visible, onClose }) {
-  // No isLikedByUser in fresh-app context; provide fallback
-  // Optionally, you can implement a real check if you add like state/user context
-  const isLikedByUser = () => false;
+  const { userId } = useUser();
+  const [comments, setComments] = useState([]);
+  // Helper to check if current user liked a comment/reply
+  const isLikedByUser = (likesArr) => {
+    if (!Array.isArray(likesArr) || !userId) return false;
+    return likesArr.some(u => u === userId || u?._id === userId);
+  };
   // For every 5 comments, show at least one reply by default (if available)
   React.useEffect(() => {
     if (!Array.isArray(comments) || comments.length === 0) return;
@@ -46,6 +50,26 @@ export default function PostComments({ postId, visible, onClose }) {
     return 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
   };
 
+  const [replyLikeLoading, setReplyLikeLoading] = useState({}); // { [replyId]: bool }
+  const [commentLikeLoading, setCommentLikeLoading] = useState({}); // { [commentId]: bool }
+
+  const handleReplyLike = async (replyId, likesArr) => {
+    if (replyLikeLoading[replyId]) return;
+    setReplyLikeLoading(l => ({ ...l, [replyId]: true }));
+    try {
+      await likePost(replyId);
+      setComments(comments => comments.map(c => ({
+        ...c,
+        replies: c.replies?.map(r =>
+          r._id === replyId
+            ? { ...r, likes: isLikedByUser(r.likes) ? r.likes.filter(u => (u === userId || u?._id === userId) === false) : [...(r.likes || []), userId] }
+            : r
+        )
+      })));
+    } catch {}
+    setReplyLikeLoading(l => ({ ...l, [replyId]: false }));
+  };
+
   const renderReply = (reply) => {
     const imgUri = getProfileImage(reply.author);
     const isVerified = reply.author?.verified;
@@ -62,7 +86,7 @@ export default function PostComments({ postId, visible, onClose }) {
           </View>
           <Text style={styles.replyText}>{reply.text || reply.content || ''}</Text>
           <View style={styles.commentActionsRow}>
-            <TouchableOpacity style={styles.likeBtn}>
+            <TouchableOpacity style={styles.likeBtn} onPress={() => handleReplyLike(reply._id, reply.likes)} disabled={replyLikeLoading[reply._id]}>
               <Ionicons name={liked ? 'heart' : 'heart-outline'} size={16} color={liked ? '#e11d48' : '#e11d48'} />
               <Text style={styles.likeCount}>{reply.likes?.length || 0}</Text>
             </TouchableOpacity>
@@ -78,6 +102,20 @@ export default function PostComments({ postId, visible, onClose }) {
   const handleReply = (commentId) => {
     setReplyTo(commentId);
     inputRef.current?.focus();
+  };
+
+  const handleCommentLike = async (commentId, likesArr) => {
+    if (commentLikeLoading[commentId]) return;
+    setCommentLikeLoading(l => ({ ...l, [commentId]: true }));
+    try {
+      await likePost(commentId);
+      setComments(comments => comments.map(c =>
+        c._id === commentId
+          ? { ...c, likes: isLikedByUser(c.likes) ? c.likes.filter(u => (u === userId || u?._id === userId) === false) : [...(c.likes || []), userId] }
+          : c
+      ));
+    } catch {}
+    setCommentLikeLoading(l => ({ ...l, [commentId]: false }));
   };
 
   const renderComment = ({ item }) => {
@@ -105,7 +143,7 @@ export default function PostComments({ postId, visible, onClose }) {
           </View>
           <Text style={styles.commentText}>{item.text || item.content || ''}</Text>
           <View style={styles.commentActionsRow}>
-            <TouchableOpacity style={styles.likeBtn}>
+            <TouchableOpacity style={styles.likeBtn} onPress={() => handleCommentLike(item._id, item.likes)} disabled={commentLikeLoading[item._id]}>
               <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color={liked ? '#e11d48' : '#e11d48'} />
               <Text style={styles.likeCount}>{item.likes?.length || 0}</Text>
             </TouchableOpacity>
@@ -158,7 +196,6 @@ export default function PostComments({ postId, visible, onClose }) {
     setInput('');
   };
   const [loading, setLoading] = useState(false);
-  const [comments, setComments] = useState([]);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [showReplies, setShowReplies] = useState({}); // { [commentId]: true/false }

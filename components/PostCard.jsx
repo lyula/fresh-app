@@ -143,7 +143,8 @@ export default function PostCard({ post }) {
           comments={comments}
           shareCount={shareCount}
           views={post.views || 0}
-          onLike={handleOpenLikes}
+          postId={post._id || post.id}
+          likedBy={Array.isArray(post.likes) ? post.likes.map(u => u._id || u) : []}
           onComment={handleOpenComments}
           onShare={handleShare}
         />

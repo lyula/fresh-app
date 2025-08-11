@@ -1,3 +1,13 @@
+// Like a post (same as the-app)
+export async function likePost(postId) {
+  const token = await AsyncStorage.getItem('token');
+  const res = await fetch(`${API_BASE}/posts/${postId}/like`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to like post');
+  return res.json();
+}
 // Get all comments for a post (for counting on client side)
 export async function getPostComments(postId) {
   const token = await getToken();

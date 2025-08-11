@@ -1,18 +1,44 @@
-import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { likePost } from '../utils/api';
+import { useUser } from '../context/user';
 
-export default function PostsInteractionBar({ likes, comments, shareCount, views, onLike, onComment, onShare }) {
+
+export default function PostsInteractionBar({ likes, comments, shareCount, views, postId, likedBy = [], onComment, onShare }) {
+  const { userId } = useUser();
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(likes || 0);
+
+  useEffect(() => {
+    if (Array.isArray(likedBy) && userId) {
+      setLiked(likedBy.some(u => u === userId || u?._id === userId));
+    } else {
+      setLiked(false);
+    }
+    setLikesCount(likes || 0);
+  }, [likedBy, userId, likes]);
+
+  const handleLike = async () => {
+    setLiked(prev => !prev);
+    setLikesCount(prev => prev + (liked ? -1 : 1));
+    try {
+      await likePost(postId);
+    } catch (e) {
+      // Optionally show error or revert state
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.leftRow}>
         <View style={styles.actionBtn}>
-          <Icon name="heart" size={18} color="#e53935" />
-          <View style={{ width: 8 }} />
-          <TouchableOpacity onPress={onLike}>
-            <Text style={styles.actionText}>{likes}</Text>
+          <TouchableOpacity onPress={handleLike}>
+            <Icon name={liked ? 'heart' : 'heart-o'} size={18} color={liked ? '#e11d48' : '#e53935'} />
           </TouchableOpacity>
+          <View style={{ width: 8 }} />
+          <Text style={[styles.actionText, liked && { color: '#e11d48' }]}>{likesCount}</Text>
         </View>
         <View style={styles.actionBtn}>
           <TouchableOpacity onPress={onComment}>
