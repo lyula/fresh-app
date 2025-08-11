@@ -1,8 +1,7 @@
+
 import React, { useEffect, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
-// import BlueBadge from './BlueBadge'; // Uncomment if you have a BlueBadge component
-// import AdsInteractions from './AdsInteractions'; // Uncomment if you have AdsInteractions
-// import { viewAd } from '../utils/api'; // Uncomment if you want to track ad views
+import PostsInteractionBar from './PostsInteractionBar';
 
 const AVATAR_SIZE = 38;
 
@@ -57,12 +56,102 @@ export default function AdCard({ ad, onView, onClick }) {
       )}
       <Text style={styles.title}>{ad.title}</Text>
       <Text style={styles.desc}>{ad.description}</Text>
-      {/* <AdsInteractions ... /> */}
+
+      {/* Ad Action Button (styled) */}
+      {(() => {
+        const contactMethod = ad.contactMethod || '';
+        const linkUrl = ad.linkUrl || '';
+        const whatsappNumber = ad.whatsappNumber || '';
+        if (contactMethod === 'link' && linkUrl) {
+          return (
+            <TouchableOpacity
+              style={[styles.adButton, { backgroundColor: '#a99d6b' }]}
+              activeOpacity={0.88}
+              onPress={() => {
+                if (linkUrl) {
+                  // Open link in browser
+                  if (typeof window !== 'undefined') {
+                    window.open(linkUrl, '_blank');
+                  } else {
+                    // For React Native, use Linking
+                    try {
+                      const Linking = require('react-native').Linking;
+                      Linking.openURL(linkUrl);
+                    } catch {}
+                  }
+                }
+              }}
+            >
+              <Text style={styles.adButtonText}>Visit Link</Text>
+            </TouchableOpacity>
+          );
+        }
+        if (contactMethod === 'whatsapp' && whatsappNumber) {
+          return (
+            <TouchableOpacity
+              style={[styles.adButton, { backgroundColor: '#25D366' }]}
+              activeOpacity={0.88}
+              onPress={() => {
+                const url = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}`;
+                try {
+                  const Linking = require('react-native').Linking;
+                  Linking.openURL(url);
+                } catch {}
+              }}
+            >
+              <Text style={styles.adButtonText}>WhatsApp</Text>
+            </TouchableOpacity>
+          );
+        }
+        if (contactMethod === 'direct-message') {
+          return (
+            <TouchableOpacity
+              style={[styles.adButton, { backgroundColor: '#7c3aed' }]}
+              activeOpacity={0.88}
+              onPress={() => {
+                // Implement navigation to chat screen if needed
+              }}
+            >
+              <Text style={styles.adButtonText}>Send Direct Message</Text>
+            </TouchableOpacity>
+          );
+        }
+        return null;
+      })()}
+
+      <PostsInteractionBar
+        likes={ad.likes || 0}
+        comments={ad.comments || 0}
+        shareCount={ad.shares || 0}
+        views={ad.views || 0}
+        onLike={() => {}}
+        onComment={() => {}}
+        onShare={() => {}}
+      />
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
+  adButton: {
+    width: '100%',
+    marginTop: 8,
+    marginBottom: 6,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  adButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+    letterSpacing: 0.2,
+  },
   card: {
     backgroundColor: '#fff', // Match normal post background
     borderRadius: 0,
