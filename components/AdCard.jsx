@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 0,
     width: '100%',
     paddingVertical: 0,
-    paddingHorizontal: 5, // Reduced horizontal padding
+    paddingHorizontal: 16, // Increased horizontal padding
     shadowColor: 'transparent',
     elevation: 0,
     borderBottomWidth: 0,
