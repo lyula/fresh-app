@@ -88,7 +88,13 @@ export default function PostCard({ post }) {
         </View>
         <Text style={styles.content}>{content}</Text>
         {post.image ? (
-          <Image source={{ uri: post.image }} style={styles.postImage} />
+          <Image
+            source={{ uri: post.image }}
+            style={[
+              styles.postImage,
+              { width: Dimensions.get('window').width, alignSelf: 'center', marginLeft: 0, marginRight: 0 }
+            ]}
+          />
         ) : null}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionBtn}>
@@ -206,11 +212,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   postImage: {
-    width: '100%',
     height: 180,
     borderRadius: 0,
     marginBottom: 8,
     backgroundColor: '#f3f4f6',
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   actions: {
     flexDirection: 'row',

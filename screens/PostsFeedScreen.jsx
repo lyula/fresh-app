@@ -89,7 +89,7 @@ export default function PostsFeedScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   feedContent: {
-    padding: 12,
+    padding: 5,
     paddingBottom: 32,
   },
 });
