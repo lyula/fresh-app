@@ -5,7 +5,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { formatDurationAgo } from '../utils/time';
 
 export default function PostCard({ post }) {
-  // Add missing state and handlers for menu
   const [menuVisible, setMenuVisible] = useState(false);
   const handleEdit = () => {
     setMenuVisible(false);
@@ -17,8 +16,6 @@ export default function PostCard({ post }) {
     // TODO: Implement delete logic
     alert('Delete post');
   };
-  // ...existing code...
-  // Defensive: get author/user and content
   const author = post.author || post.user || {};
   const avatar = author.profileImage || author.avatar || (author.profile && author.profile.profileImage) || 'https://ui-avatars.com/api/?name=User';
   let content = '';
@@ -73,7 +70,7 @@ export default function PostCard({ post }) {
         ) : null}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.actionBtn}>
-            <Icon name="heart" size={18} color="#a99d6b" />
+            <Icon name="heart" size={18} color="#e53935" />
             <Text style={styles.actionText}>{likes}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.actionBtn}>
@@ -83,8 +80,15 @@ export default function PostCard({ post }) {
           <TouchableOpacity style={styles.actionBtn}>
             <Icon name="share" size={18} color="#6b7280" />
           </TouchableOpacity>
+          <View style={{ flex: 1 }} />
+          <View style={styles.impressionsContainer}>
+            <Icon name="eye" size={17} color="#888" />
+            <Text style={styles.impressionsText}>{post.views || 0}</Text>
+          </View>
         </View>
       </View>
+      {/* Faint horizontal rule below each post */}
+      <View style={styles.hr} />
       {/* Menu modal */}
       <Modal
         visible={menuVisible}
@@ -110,26 +114,33 @@ export default function PostCard({ post }) {
 }
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    padding: 0,
+    marginBottom: 0,
+    shadowColor: 'transparent',
+    shadowOpacity: 0,
+    shadowRadius: 0,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 0,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 8,
   },
+  headerWithPad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    paddingTop: 12,
+  },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
     marginRight: 10,
+    marginTop: 12,
   },
   username: {
     fontWeight: 'bold',
@@ -169,7 +180,7 @@ const styles = StyleSheet.create({
   postImage: {
     width: '100%',
     height: 180,
-    borderRadius: 10,
+    borderRadius: 0,
     marginBottom: 8,
     backgroundColor: '#f3f4f6',
   },
@@ -177,6 +188,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 4,
+    marginBottom: 12,
   },
   actionBtn: {
     flexDirection: 'row',
@@ -187,6 +199,26 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     color: '#222',
     fontSize: 14,
+  },
+  hr: {
+    height: 1,
+    backgroundColor: '#ececec',
+    width: '100vw',
+    marginLeft: -24,
+    marginRight: -24,
+    marginVertical: 0,
+    opacity: 0.7,
+  },
+  impressionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 'auto',
+  },
+  impressionsText: {
+    marginLeft: 4,
+    color: '#888',
+    fontSize: 13,
+    fontWeight: '500',
   },
   // Menu modal styles
   modalOverlay: {
