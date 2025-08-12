@@ -87,7 +87,7 @@ export default function PostCard({ post }) {
             <View style={styles.usernameRow}>
               <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
               {author.verified && (
-                <Image source={require('../assets/blue-badge.png')} style={{ width: 20, height: 20 }} />
+                <Image source={require('../assets/blue-badge.png')} style={{ width: 20, height: 20, marginRight: 4 }} />
               )}
               {author.badge && author.badge.icon && (
                 <View style={styles.badgeRow}>
@@ -96,7 +96,7 @@ export default function PostCard({ post }) {
                 </View>
               )}
               <Text style={styles.dot}>•</Text>
-              <Text style={styles.time}>{formatDurationAgo(post.createdAt)}</Text>
+              <Text style={[styles.time, { marginLeft: 12 }]}>{formatDurationAgo(post.createdAt)}</Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginLeft: 8, padding: 4 }}>
@@ -337,6 +337,13 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 16,
     color: '#222',
+  },
+  dot: {
+    fontSize: 16,
+    color: '#888',
+    marginLeft: 4,
+    marginRight: 4,
+    fontWeight: 'bold',
   },
 });
 

@@ -1,11 +1,62 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import PostsInteractionBar from './PostsInteractionBar';
+import { getAdInteractions, likeAd, viewAd } from '../utils/adInteractionsApi';
+import { useUser } from '../context/user';
 
 const AVATAR_SIZE = 38;
 
 export default function AdCard({ ad, onView, onClick }) {
+  const { userId } = useUser();
+  const [liked, setLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(ad.likesCount || 0);
+  const [commentsCount, setCommentsCount] = useState(ad.commentsCount || 0);
+  const [views, setViews] = useState(ad.views || 0);
+  const [likeLoading, setLikeLoading] = useState(false);
+  const hasTrackedImpression = useRef(false);
+
+  // Fetch ad interaction state on mount
+  useEffect(() => {
+    let isMounted = true;
+    if (!ad || !ad._id) return;
+    getAdInteractions(ad._id)
+      .then(data => {
+        if (!isMounted) return;
+        const likesArr = Array.isArray(data?.likes) ? data.likes : [];
+        setLiked(!!likesArr.find(u => String(u?._id) === String(userId)));
+        setLikesCount(likesArr.length);
+        setCommentsCount(Array.isArray(data?.comments) ? data.comments.length : 0);
+        setViews(typeof data?.viewCount === 'number' ? data.viewCount : 0);
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, [ad?._id, userId]);
+
+  // Track ad view (impression) once
+  useEffect(() => {
+    if (!ad || !ad._id || hasTrackedImpression.current) return;
+    viewAd(ad._id).then(data => {
+      setViews(typeof data?.viewCount === 'number' ? data.viewCount : v => v);
+      hasTrackedImpression.current = true;
+    }).catch(() => {});
+  }, [ad?._id]);
+
+  const handleLike = async () => {
+    if (!ad || !ad._id || likeLoading) return;
+    setLikeLoading(true);
+    try {
+      await likeAd(ad._id);
+      // Always fetch the latest state from the DB after like
+      const data = await getAdInteractions(ad._id);
+      const likesArr = Array.isArray(data?.likes) ? data.likes : [];
+      setLiked(!!likesArr.find(u => String(u?._id) === String(userId)));
+      setLikesCount(likesArr.length);
+      setCommentsCount(Array.isArray(data?.comments) ? data.comments.length : 0);
+      setViews(typeof data?.viewCount === 'number' ? data.viewCount : 0);
+    } catch {}
+    setLikeLoading(false);
+  };
   // const hasTrackedImpression = useRef(false);
   // useEffect(() => {
   //   if (!ad || hasTrackedImpression.current) return;
@@ -41,7 +92,9 @@ export default function AdCard({ ad, onView, onClick }) {
         <View style={styles.headerTextCol}>
           <View style={styles.authorBadgeRow}>
             <Text style={styles.author}>{username}</Text>
-            {/* {isVerified && <BlueBadge style={styles.badge} />} */}
+            {isVerified && (
+              <Image source={require('../assets/blue-badge.png')} style={styles.badge} />
+            )}
           </View>
           <Text style={styles.sponsored}>Sponsored</Text>
         </View>
@@ -121,11 +174,14 @@ export default function AdCard({ ad, onView, onClick }) {
 
       <View style={{ paddingBottom: 16 }}>
         <PostsInteractionBar
-          likes={ad.likes || 0}
-          comments={ad.comments || 0}
+          likes={likesCount}
+          comments={commentsCount}
           shareCount={ad.shares || 0}
-          views={ad.views || 0}
-          onLike={() => {}}
+          views={views}
+          likedBy={[]} // Not used for ads, disables local like state logic
+          postId={ad._id}
+          liked={liked}
+          onLike={handleLike}
           onComment={() => {}}
           onShare={() => {}}
         />
@@ -222,8 +278,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   badge: {
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     marginLeft: 4,
     marginTop: 1,
   },
