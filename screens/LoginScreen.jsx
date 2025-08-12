@@ -38,7 +38,7 @@ const Button = styled(TouchableOpacity)({
   marginTop: 8,
 });
 
-const API_BASE = Constants.manifest?.extra?.API_BASE_URL || 'http://192.168.100.37:5000/api';
+const API_BASE = process.env.API_BASE_URL || 'http://192.168.100.37:5000/api';
 console.log('[DEBUG] API_BASE resolved to:', API_BASE);
 
 async function loginUser({ email, password }) {
