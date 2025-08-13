@@ -1,8 +1,8 @@
 // Fetch profile suggestions for the current user
 // Match client API: /user/suggestions/:userId
-export async function getProfileSuggestions(userId) {
+export async function getProfileSuggestions(userId, count = 100) {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/user/suggestions/${userId}`, {
+  const res = await fetch(`${API_BASE}/user/suggestions/${userId}?count=${count}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch profile suggestions');

@@ -22,14 +22,13 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
     if (!currentUser?._id) return;
     let mounted = true;
     setLoading(true);
-    fetchProfileSuggestions(currentUser._id)
+    // Fetch up to 100 suggestions
+    fetchProfileSuggestions(currentUser._id, 100)
       .then(data => {
         let suggestionsArr = data.suggestions || [];
         // Filter out users already followed
         const followingRaw = currentUser?.followingRaw || [];
         suggestionsArr = suggestionsArr.filter(s => !followingRaw.includes(s._id));
-        // Filter out dismissed
-        suggestionsArr = suggestionsArr.filter(s => !dismissed.includes(s._id));
         // Sort: profile image first, then verified
         suggestionsArr.sort((a, b) => {
           const aHasImage = !!getProfileImage(a);
@@ -40,23 +39,46 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
           if (!a.verified && b.verified) return 1;
           return 0;
         });
-        if (mounted) setSuggestions(suggestionsArr);
+        // Only keep up to 100 unique suggestions
+        if (mounted) setSuggestions(suggestionsArr.slice(0, 100));
       })
       .catch(() => { if (mounted) setSuggestions([]); })
       .finally(() => { if (mounted) setLoading(false); });
     return () => { mounted = false; };
-  }, [currentUser, dismissed]);
+  }, [currentUser]);
 
   const handleFollow = (id) => {
     setFollowing(prev => [...prev, id]);
     if (onFollow) onFollow(id);
   };
-  const handleDismiss = (id) => {
-    setDismissed(prev => [...prev, id]);
+  const handleDismiss = async (id) => {
+    setDismissed(prev => {
+      const updated = [...prev, id];
+      // After updating dismissed, check if we need to fetch more
+      const filtered = suggestions.filter(s => !updated.includes(s._id));
+      if (filtered.length < MAX_VISIBLE) {
+        // Fetch more suggestions and append
+        fetchProfileSuggestions(currentUser._id, 100).then(data => {
+          let newSuggestions = data.suggestions || [];
+          // Filter out already followed and already shown/dismissed
+          const followingRaw = currentUser?.followingRaw || [];
+          newSuggestions = newSuggestions.filter(s =>
+            !followingRaw.includes(s._id) &&
+            !suggestions.some(existing => existing._id === s._id) &&
+            !updated.includes(s._id)
+          );
+          if (newSuggestions.length > 0) {
+            setSuggestions(prevList => [...prevList, ...newSuggestions]);
+          }
+        });
+      }
+      return updated;
+    });
     if (onDismiss) onDismiss(id);
   };
 
-  const visibleSuggestions = suggestions.filter(s => !dismissed.includes(s._id));
+  const MAX_VISIBLE = 5;
+  const visibleSuggestions = suggestions.filter(s => !dismissed.includes(s._id)).slice(0, MAX_VISIBLE);
 
   if (loading) {
     return (
