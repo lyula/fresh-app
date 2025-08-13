@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSidebar } from '../context/SidebarContext';
-import { View, Text, TouchableOpacity, Image, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Image, StyleSheet, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -30,6 +30,7 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
   }
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>  
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
       <TouchableOpacity style={styles.iconButton} onPress={toggleSidebar}>
         <Icon name="bars" size={30} color={ICON_COLOR} />
       </TouchableOpacity>
@@ -46,7 +47,7 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
         <TouchableOpacity style={styles.iconButton} onPress={onNotifications || (() => navigation.navigate('NotificationsScreen'))}>
           <Icon name="bell" size={20} color={ICON_COLOR} />
         </TouchableOpacity>
-  <TouchableOpacity style={styles.iconButton} onPress={onProfile || (() => navigation.navigate('PublicProfileScreen'))}>
+        <TouchableOpacity style={styles.iconButton} onPress={onProfile || (() => navigation.navigate('PublicProfileScreen'))}>
           {profileImage ? (
             <Image
               source={{ uri: profileImage }}

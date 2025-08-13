@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fresh App - Android App Store</title>
+  <link rel="icon" type="image/png" href="../assets/mount.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      background: #f5f6fa;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    .appstore-container {
+      max-width: 420px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 32px 24px 24px 24px;
+      text-align: center;
+    }
+    .app-icon {
+      width: 100px;
+      height: 100px;
+      border-radius: 22px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+      margin-bottom: 18px;
+    }
+    .app-title {
+      font-size: 2.1rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #1a73e8;
+    }
+    .app-dev {
+      color: #4f46e5;
+      font-size: 1em;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .app-desc {
+      font-size: 1.13rem;
+      color: #555;
+      margin-bottom: 18px;
+      text-align: left;
+    }
+    .download-btn {
+      display: inline-block;
+      background: #1a73e8;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 700;
+      padding: 14px 36px;
+      border: none;
+      border-radius: 12px;
+      text-decoration: none;
+      margin-bottom: 12px;
+      transition: background 0.2s;
+      box-shadow: 0 2px 8px rgba(26,115,232,0.10);
+      cursor: pointer;
+    }
+    .download-btn:hover {
+      background: #1765c1;
+    }
+    .google-badge {
+      width: 120px;
+      margin-top: 10px;
+    }
+    .install-instructions {
+      font-size: 0.98rem;
+      color: #888;
+      margin-top: 18px;
+      text-align: left;
+    }
+    .screenshots {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 16px 0 0 0;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      justify-content: center;
+    }
+    .screenshots::-webkit-scrollbar {
+      display: none;
+    }
+    .screenshots img {
+      width: 120px;
+      height: 220px;
+      object-fit: cover;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      flex-shrink: 0;
+      transition: transform 0.2s ease;
+    }
+    .screenshots img:hover {
+      transform: scale(1.03);
+    }
+  </style>
+</head>
+<body>
+  <div class="appstore-container">
+    <img src="../assets/mount.png" alt="Journalyze App Icon" class="app-icon" />
+    <div class="app-title" style="display:flex;align-items:center;justify-content:center;gap:10px;">
+      Journalyze
+      <img src="../assets/blue-badge.png" alt="Verified" class="google-badge" style="width:28px;height:28px;margin:0;vertical-align:middle;box-shadow:none;" />
+    </div>
+    <div class="app-dev">by Journalyze Team</div>
+    <a href="Journalyze-test.apk" class="download-btn" id="installBtn">Install</a>
+    <div class="screenshots">
+      <img src="../assets/mount.png" alt="Screenshot 1" />
+      <img src="../assets/mount.png" alt="Screenshot 2" />
+      <img src="../assets/mount.png" alt="Screenshot 3" />
+    </div>
+    <div class="app-desc">
+      <b>Journalyze</b> empowers you to journal your trading journey, access high quality trading signals from rigorously verified professional traders, and share your life's best moments with a vibrant community.<br><br>
+      <ul style="text-align:left; margin:0 0 0 18px; padding:0; color:#444; font-size:1em;">
+        <li>📝 Effortless journaling for personal growth and trading</li>
+        <li>� High quality signals from verified pro traders</li>
+        <li>🌟 Share your best moments and connect with others</li>
+        <li>🔒 Private & secure</li>
+        <li>🌙 Dark mode support</li>
+        <li>📱 Add to home screen</li>
+      </ul>
+    </div>
+    <a href="Journalyze-test.apk" class="download-btn" id="installBtn">Install</a>
+    <div class="install-instructions">
+      <strong>How to install:</strong>
+      <ol>
+        <li>Tap the <b>Install</b> button above.</li>
+        <li>Once downloaded, open the APK file.</li>
+        <li>If prompted, allow installation from your browser or file manager.</li>
+        <li>Follow the on-screen instructions to install Journalyze.</li>
+      </ol>
+      <em>Note: You may need to enable "Install unknown apps" in your device settings.</em>
+    </div>
+  </div>
+  <script>
+    document.getElementById('installBtn').addEventListener('click', function() {
+      setTimeout(function() {
+        alert('If the download does not start, please check your browser settings or try again.');
+      }, 1000);
+    });
+  </script>
+</body>
+</html>

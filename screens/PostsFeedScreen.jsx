@@ -153,7 +153,7 @@ function PostsFeedScreen() {
           top: 56, // height of MainHeader
           left: 0,
           right: 0,
-          marginTop: 25,
+          // Removed marginTop to eliminate gap
           transform: [{ translateY: feedHeaderAnim }],
           opacity: feedHeaderOpacity,
           zIndex: 10,

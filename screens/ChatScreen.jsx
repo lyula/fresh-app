@@ -58,7 +58,7 @@ export default function ChatScreen() {
     // Fetch last seen info
     const fetchLastSeen = async () => {
       try {
-        const API_BASE = process.env.EXPO_PUBLIC_API_URL || process.env.API_BASE || '';
+  const API_BASE = process.env.EXPO_PUBLIC_API_URL || process.env.API_BASE || '';
         const token = await getToken();
         const res = await fetch(`${API_BASE}/user/last-seen/${user._id}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},

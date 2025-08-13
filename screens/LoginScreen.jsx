@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { styled } from 'dripsy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -38,7 +38,7 @@ const Button = styled(TouchableOpacity)({
   marginTop: 8,
 });
 
-const API_BASE = process.env.API_BASE_URL || 'http://192.168.100.37:5000/api';
+const API_BASE = Constants.expoConfig?.extra?.API_BASE_URL || Constants.manifest?.extra?.API_BASE_URL;
 console.log('[DEBUG] API_BASE resolved to:', API_BASE);
 
 async function loginUser({ email, password }) {
@@ -100,7 +100,9 @@ export default function LoginScreen() {
   };
 
   return (
-    <Container>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
+      <Container>
       <Text style={{ fontSize: 28, fontWeight: 'bold', color: PRIMARY_BLUE, marginBottom: 24, textAlign: 'center' }}>
         Welcome Back
       </Text>
@@ -144,7 +146,8 @@ export default function LoginScreen() {
           Register
         </Text>
       </Text>
-    </Container>
+      </Container>
+    </>
   );
 }
 

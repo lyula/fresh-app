@@ -1,6 +1,9 @@
+import Constants from 'expo-constants';
+
+const API_BASE = Constants.expoConfig?.extra?.API_BASE_URL || Constants.manifest?.extra?.API_BASE_URL;
 // Recreated RegisterScreen to match the original app's UI and logic
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, FlatList, Image } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, Platform, FlatList, Image, StatusBar } from 'react-native';
 import Checkbox from 'expo-checkbox';
 import { useNavigation } from '@react-navigation/native';
 import { styled } from 'dripsy';
@@ -163,7 +166,9 @@ export default function RegisterScreen() {
   };
 
   return (
-    <Container>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
+      <Container>
       <Text style={{ fontSize: 28, fontWeight: 'bold', color: PRIMARY_BLUE, marginBottom: 24, textAlign: 'center' }}>
         Create Account
       </Text>
@@ -189,14 +194,14 @@ export default function RegisterScreen() {
           <Picker
             selectedValue={gender}
             onValueChange={(itemValue) => setGender(itemValue)}
-            style={{ width: '100%' }}
+            style={{ width: '100%', color: '#222' }}
             dropdownIconColor={PRIMARY}
             onFocus={() => setShowCountryList(false)}
           >
             <Picker.Item label="Select gender" value="" color="#b3b3b3" />
-            <Picker.Item label="Male" value="male" />
-            <Picker.Item label="Female" value="female" />
-            <Picker.Item label="Other" value="other" />
+            <Picker.Item label="Male" value="male" color="#222" />
+            <Picker.Item label="Female" value="female" color="#222" />
+            <Picker.Item label="Other" value="other" color="#222" />
           </Picker>
         </View>
       </View>
@@ -286,7 +291,8 @@ export default function RegisterScreen() {
           Login
         </Text>
       </Text>
-    </Container>
+      </Container>
+    </>
   );
 }
 

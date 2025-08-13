@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator } from 'react-native';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
 import { Platform } from 'react-native';
 import { Video } from 'expo-av';
 import { useUser } from '../context/user';
@@ -46,9 +46,11 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
   };
 
   return (
-    <View style={styles.centeredContainer}>
-      {/* Header removed, Cancel is now in user row */}
-      <View style={styles.formContent}>
+    <>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
+      <SafeAreaView style={styles.centeredContainer}>
+  {/* Header removed, Cancel is now in user row */}
+  <View style={styles.formContent}>
         <View style={styles.userRowFlat}>
           <Image
             source={{ uri: (user?.profileImage || user?.profile?.profileImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png') }}
@@ -104,7 +106,8 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
         </View>
         {error ? <Text style={styles.errorFlat}>{error}</Text> : null}
       </View>
-    </View>
+    </SafeAreaView>
+  </>
   );
 }
 

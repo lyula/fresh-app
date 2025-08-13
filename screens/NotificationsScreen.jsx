@@ -14,7 +14,7 @@ export default function NotificationsScreen() {
   const [profileImages, setProfileImages] = useState({});
   const fetchingProfiles = useRef({});
 
-  const API_BASE = process.env.API_BASE_URL || 'http://192.168.100.37:5000/api';
+  const API_BASE = Constants.expoConfig?.extra?.API_BASE_URL || Constants.manifest?.extra?.API_BASE_URL;
 
   // Fetch notifications from backend
   useEffect(() => {
