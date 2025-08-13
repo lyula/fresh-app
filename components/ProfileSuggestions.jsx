@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getProfileSuggestions as fetchProfileSuggestions } from '../utils/api';
 import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import BlueBadge from './BlueBadge';
 
 function getProfileImage(user) {
   if (!user) return '';
@@ -105,7 +106,7 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, justifyContent: 'center' }}>
               <Text style={styles.name} numberOfLines={1}>{item.username}</Text>
               {item.verified && (
-                <Ionicons name="checkmark-circle" size={16} color="#1E3A8A" style={{ marginLeft: 4, marginBottom: -2 }} />
+                <BlueBadge size={16} style={{ marginLeft: 4, marginBottom: -2 }} />
               )}
             </View>
             {item.commonFollower && item.commonFollower.username ? (
