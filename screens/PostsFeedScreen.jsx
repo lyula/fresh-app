@@ -4,6 +4,8 @@ import MainHeader from '../components/MainHeader';
 import FeedHeader from '../components/FeedHeader';
 import PostCard from '../components/PostCard';
 import AdCard from '../components/AdCard';
+import ProfileSuggestions from '../components/ProfileSuggestions';
+import { useUser } from '../context/user';
 import BottomHeader from '../components/BottomHeader';
 import { useNavigation } from '@react-navigation/native';
 import { fetchPosts } from '../utils/api';
@@ -14,6 +16,7 @@ import { fetchAds } from '../utils/ads';
 
 function PostsFeedScreen() {
   const navigation = useNavigation();
+  const { user } = useUser();
   const [activeTab, setActiveTab] = useState('forYou');
   // Add PanResponder for swipe gestures
   const panResponder = React.useRef(
@@ -145,16 +148,19 @@ function PostsFeedScreen() {
   };
 
   // RenderItem logic: after every 4th post (after the 3rd), insert an ad from ads array, cycling through ads
+  // Insert ProfileSuggestions after the 5th post (index 4), matching client logic
   const renderItem = ({ item, index }) => {
     const adInterval = 4;
     const adStart = 3;
     const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
-    // Always recycle ads: cycle through ads array as many times as needed
     const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
     const adIndex = ads.length > 0 ? adInsertionCount % ads.length : 0;
     return (
       <>
         <PostCard post={item} />
+        {index === 4 && (
+          <ProfileSuggestions currentUser={user} />
+        )}
         {shouldShowAd && ads.length > 0 && (
           <AdCard ad={ads[adIndex]} />
         )}

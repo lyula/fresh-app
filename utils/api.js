@@ -1,3 +1,13 @@
+// Fetch profile suggestions for the current user
+// Match client API: /user/suggestions/:userId
+export async function getProfileSuggestions(userId) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/user/suggestions/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to fetch profile suggestions');
+  return await res.json();
+}
 // Fetch profile images for a list of user IDs or usernames (copied from web client)
 export async function getProfileImages({ userIds = [], usernames = [] }) {
   const token = await getToken();
