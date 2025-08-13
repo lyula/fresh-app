@@ -44,7 +44,6 @@ export default function App() {
                   <Stack.Screen name="PublicProfileScreen" component={require('./screens/PublicProfileScreen').default} options={{ title: 'Profile', headerShown: false }} />
                 </Stack.Navigator>
                 <Sidebar />
-                <StatusBar style="dark" backgroundColor={theme.colors.$background} translucent={false} />
               </SidebarProvider>
             </NavigationContainer>
         </SafeAreaProvider>

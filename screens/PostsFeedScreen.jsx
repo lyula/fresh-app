@@ -182,7 +182,7 @@ function PostsFeedScreen() {
           data={posts}
           keyExtractor={(item, idx) => String(item.id || item._id || idx)}
           renderItem={renderItem}
-          contentContainerStyle={{ paddingTop: FEED_HEADER_HEIGHT, paddingBottom: 70 }}
+          contentContainerStyle={{ paddingTop: 32, paddingBottom: 70 }}
           refreshing={refreshing}
           onRefresh={onRefresh}
           onEndReached={fetchMorePosts}
