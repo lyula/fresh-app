@@ -235,7 +235,23 @@ export default function PostComments({ postId, visible, onClose }) {
             </TouchableOpacity>
           </View>
           {loading ? (
-            <ActivityIndicator size="large" style={{ marginTop: 32 }} />
+            <View style={styles.commentsList}>
+              {[...Array(3)].map((_, idx) => (
+                <View key={idx} style={styles.commentRow}>
+                  <View style={[styles.avatar, { backgroundColor: '#eee' }]} />
+                  <View style={styles.commentContentFlat}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <View style={{ width: 80, height: 16, backgroundColor: '#eee', borderRadius: 4, marginBottom: 6 }} />
+                    </View>
+                    <View style={{ width: '90%', height: 14, backgroundColor: '#eee', borderRadius: 4, marginBottom: 8 }} />
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 4 }}>
+                      <View style={{ width: 32, height: 14, backgroundColor: '#eee', borderRadius: 4, marginRight: 12 }} />
+                      <View style={{ width: 32, height: 14, backgroundColor: '#eee', borderRadius: 4 }} />
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
           ) : comments.length === 0 ? (
             <Text style={styles.empty}>No comments yet.</Text>
           ) : (
