@@ -15,6 +15,28 @@ import { fetchAds } from '../utils/ads';
 function PostsFeedScreen() {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('forYou');
+  // Add PanResponder for swipe gestures
+  const panResponder = React.useRef(
+    require('react-native').PanResponder.create({
+      onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // Only respond to horizontal swipes that are much stronger than vertical
+        return (
+          Math.abs(gestureState.dx) > 60 && // require a larger horizontal movement
+          Math.abs(gestureState.dx) > 2 * Math.abs(gestureState.dy)
+        );
+      },
+      onPanResponderRelease: (evt, gestureState) => {
+        setActiveTab(prevTab => {
+          if (gestureState.dx < -80 && prevTab === 'forYou') {
+            return 'following';
+          } else if (gestureState.dx > 80 && prevTab === 'following') {
+            return 'forYou';
+          }
+          return prevTab;
+        });
+      },
+    })
+  ).current;
   const lastScrollY = useRef(0);
   const feedHeaderAnim = useRef(new Animated.Value(0)).current; // 0: visible, -60: hidden
   const feedHeaderOpacity = useRef(new Animated.Value(1)).current;
@@ -141,7 +163,7 @@ function PostsFeedScreen() {
   };
 
   return (
-    <View style={{ flex: 1, paddingTop: 56 }}>
+  <View style={{ flex: 1, paddingTop: 56 }} {...panResponder.panHandlers}>
       {/* MainHeader absolutely at the top, always above FeedHeader */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
         <MainHeader onMessages={() => navigation.navigate('MessagesScreen')} />
