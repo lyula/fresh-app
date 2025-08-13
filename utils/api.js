@@ -1,8 +1,14 @@
 // Fetch profile suggestions for the current user
 // Match client API: /user/suggestions/:userId
-export async function getProfileSuggestions(userId, count = 100) {
+export async function getProfileSuggestions(userId, count = 100, filter = '', search = '', page = 1) {
   const token = await getToken();
-  const res = await fetch(`${API_BASE}/user/suggestions/${userId}?count=${count}`, {
+  const params = new URLSearchParams({
+    count: count.toString(),
+    filter,
+    search,
+    page: page.toString(),
+  });
+  const res = await fetch(`${API_BASE}/user/suggestions/${userId}?${params.toString()}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   if (!res.ok) throw new Error('Failed to fetch profile suggestions');
@@ -88,6 +94,21 @@ export async function incrementPostShareCount(postId) {
   });
   if (!res.ok) throw new Error('Failed to increment share count');
   return res.json();
+}
+// Browse users with optional filters
+export async function browseUsers({ search = '', filter = 'recommended', page = 1, limit = 20, tokenOverride = null }) {
+  const token = tokenOverride || await getToken();
+  const params = new URLSearchParams({
+    search,
+    filter,
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  const res = await fetch(`${API_BASE}/user/browse?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to browse users');
+  return await res.json();
 }
 
 

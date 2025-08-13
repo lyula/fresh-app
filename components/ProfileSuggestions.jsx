@@ -3,6 +3,7 @@ import { getProfileSuggestions as fetchProfileSuggestions } from '../utils/api';
 import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import BlueBadge from './BlueBadge';
+import { useNavigation } from '@react-navigation/native';
 
 function getProfileImage(user) {
   if (!user) return '';
@@ -13,6 +14,7 @@ function getProfileImage(user) {
 }
 
 export default function ProfileSuggestions({ currentUser, onFollow, onDismiss }) {
+  const navigation = useNavigation();
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dismissed, setDismissed] = useState([]);
@@ -22,7 +24,7 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
     if (!currentUser?._id) return;
     let mounted = true;
     setLoading(true);
-    // Fetch up to 100 suggestions
+    // Always use 'recommended' logic for feed suggestions
     fetchProfileSuggestions(currentUser._id, 100)
       .then(data => {
         let suggestionsArr = data.suggestions || [];
@@ -104,6 +106,9 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
     <View style={styles.container}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, paddingHorizontal: 8 }}>
         <Text style={styles.header}>Suggested for you</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('AllProfileSuggestions')}>
+          <Text style={{ color: '#1E3A8A', fontWeight: 'bold', fontSize: 13 }}>View all</Text>
+        </TouchableOpacity>
       </View>
       <FlatList
         data={visibleSuggestions}
