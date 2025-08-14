@@ -61,11 +61,7 @@ export default function PaymentsScreen() {
       <TouchableOpacity
         style={styles.card}
         onPress={() => {
-          if (item._paymentType === 'Journal') {
-            navigation.navigate('JournalPaymentDetail', { paymentId: item._id || item.id || index });
-          } else {
-            navigation.navigate('BadgePaymentDetail', { paymentId: item._id || item.id || index });
-          }
+          navigation.navigate('PaymentsDetailScreen', { paymentId: item._id || item.id || index });
         }}
       >
         <View style={styles.row}><Text style={styles.label}>Amount:</Text><Text style={[styles.amount, isSuccess ? styles.success : styles.failed]}>{item.currency || 'KES'} {typeof item.amount === 'number' ? item.amount.toLocaleString() : item.amount}</Text></View>
@@ -79,7 +75,20 @@ export default function PaymentsScreen() {
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color="#a99d6b" style={{ marginTop: 32 }} />
+        <FlatList
+          data={Array.from({ length: 5 })}
+          keyExtractor={(_, idx) => `skeleton-${idx}`}
+          renderItem={() => (
+            <View style={[styles.card, { opacity: 0.5 }]}> 
+              <View style={styles.row}><Text style={[styles.label, styles.skeleton]}>Amount:</Text><Text style={[styles.amount, styles.skeleton]}>----</Text></View>
+              <View style={styles.row}><Text style={[styles.label, styles.skeleton]}>Date:</Text><Text style={[styles.date, styles.skeleton]}>----</Text></View>
+              <View style={styles.row}><Text style={[styles.label, styles.skeleton]}>Type:</Text><Text style={[styles.type, styles.skeleton]}>----</Text></View>
+              <View style={styles.row}><Text style={[styles.label, styles.skeleton]}>Status:</Text><Text style={[styles.status, styles.skeleton]}>----</Text></View>
+            </View>
+          )}
+          contentContainerStyle={{ paddingBottom: 24 }}
+          showsVerticalScrollIndicator={false}
+        />
       ) : error ? (
         <Text style={styles.error}>{error}</Text>
       ) : payments.length === 0 ? (
@@ -91,6 +100,7 @@ export default function PaymentsScreen() {
             keyExtractor={(item, idx) => String(item._id || item.id || idx)}
             renderItem={renderPayment}
             contentContainerStyle={{ paddingBottom: 24 }}
+            showsVerticalScrollIndicator={false}
           />
           <View style={styles.pagination}>
             <TouchableOpacity
@@ -174,6 +184,13 @@ const styles = StyleSheet.create({
     color: '#888',
     textAlign: 'center',
     marginTop: 32,
+  },
+  skeleton: {
+    backgroundColor: '#e5e7eb',
+    borderRadius: 4,
+    minWidth: 60,
+    minHeight: 16,
+    color: '#e5e7eb',
   },
   error: {
     color: '#ef4444',

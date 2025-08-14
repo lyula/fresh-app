@@ -44,6 +44,7 @@ export default function App() {
                   <Stack.Screen name="PublicProfileScreen" component={require('./screens/PublicProfileScreen').default} options={{ title: 'Profile', headerShown: false }} />
                   <Stack.Screen name="AllProfileSuggestions" component={require('./screens/AllProfileSuggestionsScreen').default} options={{ title: 'All Suggestions' }} />
                   <Stack.Screen name="PaymentsScreen" component={require('./screens/PaymentsScreen').default} options={{ title: 'Payments' }} />
+                  <Stack.Screen name="PaymentsDetailScreen" component={require('./screens/PaymentsDetailScreen').default} options={{ title: 'Payment Details' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>

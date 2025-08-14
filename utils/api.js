@@ -1,3 +1,23 @@
+// Robust payment fetching functions (matching client logic)
+export async function getBadgePayments(tokenOverride = null) {
+  const token = tokenOverride || await getToken();
+  const res = await fetch(`${API_BASE}/badge-payments/my`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data ? [data] : []);
+}
+
+export async function getJournalPayments(tokenOverride = null) {
+  const token = tokenOverride || await getToken();
+  const res = await fetch(`${API_BASE}/journal-payments`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data ? [data] : []);
+}
 // Fetch profile suggestions for the current user
 // Match client API: /user/suggestions/:userId
 export async function getProfileSuggestions(userId, count = 100, filter = '', search = '', page = 1) {
