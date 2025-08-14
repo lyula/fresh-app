@@ -196,6 +196,7 @@ function PostsFeedScreen() {
         pointerEvents="box-none"
       >
         <FeedHeader
+
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           onCreatePost={() => navigation.navigate('CreatePost')}
@@ -288,12 +289,14 @@ function PostsFeedScreen() {
               feedRef.current.scrollToOffset({ offset: 0, animated: true });
             }
           }}
+          onDiscoverPress={() => navigation.navigate('AllProfileSuggestions')}
           onMessagesPress={() => {}}
           onPlusPress={() => navigation.navigate('CreatePost')}
         />
       </Animated.View>
     </View>
   );
+}
 
 const styles = StyleSheet.create({
   feedContent: {
@@ -302,6 +305,5 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
 });
-}
 
 export default PostsFeedScreen;

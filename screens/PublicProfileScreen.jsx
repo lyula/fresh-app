@@ -165,6 +165,7 @@ export default function PublicProfileScreen({ route }) {
           <Image
             source={{ uri: profileImage }}
             style={{
+
               width: 90,
               height: 90,
               borderRadius: 45,
@@ -259,6 +260,7 @@ export default function PublicProfileScreen({ route }) {
                 scrollRef.current.scrollTo({ y: 0, animated: true });
               }
             }}
+            onDiscoverPress={() => navigation.navigate('AllProfileSuggestions')}
             onProfilePress={() => {
               if (scrollRef.current) {
                 scrollRef.current.scrollTo({ y: 0, animated: true });
