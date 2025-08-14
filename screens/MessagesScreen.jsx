@@ -156,6 +156,29 @@ export default function MessagesScreen() {
     );
   };
 
+  if (loading) {
+    // Show skeletons for messages, keep header and stories fixed, remove marginTop
+    return (
+      <SafeAreaView style={styles.container}>
+        <MainHeader title="Messages" />
+        <StoriesBar />
+        <View style={{ flex: 1 }}>
+          <View style={{ paddingHorizontal: 16 }}>
+            {[...Array(6)].map((_, i) => (
+              <View key={i} style={styles.skeletonRow}>
+                <View style={styles.skeletonAvatar} />
+                <View style={styles.skeletonTextWrap}>
+                  <View style={styles.skeletonLineShort} />
+                  <View style={styles.skeletonLineLong} />
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20 }}>
@@ -175,9 +198,7 @@ export default function MessagesScreen() {
       <SearchUser onUserSelect={(user) => { /* handle user selection if needed */ }} />
       {/* Divider between search input and messages */}
       <View style={{ height: 1, backgroundColor: '#ececec', marginVertical: 4, borderRadius: 1 }} />
-      {loading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} size="large" color="#1E3A8A" />
-      ) : error ? (
+      {error ? (
         <Text style={{ color: 'red', textAlign: 'center', marginTop: 40 }}>{error}</Text>
       ) : (
         <FlatList
@@ -193,6 +214,10 @@ export default function MessagesScreen() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   messageRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -240,4 +265,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginLeft: 10,
   },
+  // Skeleton styles
+  skeletonRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 18 },
+  skeletonAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#e3e7ed', marginRight: 14 },
+  skeletonTextWrap: { flex: 1 },
+  skeletonLineShort: { width: '40%', height: 12, backgroundColor: '#e3e7ed', borderRadius: 6, marginBottom: 8 },
+  skeletonLineLong: { width: '70%', height: 12, backgroundColor: '#e3e7ed', borderRadius: 6 },
 });
