@@ -32,37 +32,35 @@ export default function AllProfileSuggestionsScreen() {
   const [searchTimeout, setSearchTimeout] = useState(null);
 
   useEffect(() => {
-    loadUsers(true);
+    // Only run one effect: if search is active, only show search results
+    if (search.length > 0) {
+      loadUsers(true, search, filter);
+    } else {
+      loadUsers(true, '', filter);
+    }
   }, [currentUser, filter, search]);
 
+  // Remove debounce effect, trigger loadUsers directly on search change
   useEffect(() => {
     if (!currentUser?._id) return;
-    if (searchTimeout) clearTimeout(searchTimeout);
-    const timeout = setTimeout(() => {
-      loadUsers(true);
-    }, 300);
-    setSearchTimeout(timeout);
-    return () => clearTimeout(timeout);
+    loadUsers(true);
   }, [search]);
 
   // Use browseUsers API for non-recommended filters
 
   const loadUsers = async (reset = false, newSearch = '', newFilter = '') => {
+    // Always treat search as a new query (replace results)
     const currentPage = reset ? 1 : page;
     const searchVal = newSearch !== undefined ? newSearch : search;
     const filterVal = newFilter || filter;
     try {
-      if (reset) {
-        setLoading(true);
-        setUsers([]);
-        setPage(1);
-      } else {
-        setLoadingMore(true);
-      }
+      setLoading(true);
+      setUsers([]);
+      setPage(1);
       let response;
       if (filterVal === 'recommended') {
         // Use suggestions endpoint for recommended
-        const data = await getProfileSuggestions(currentUser._id, 20, '', searchVal, currentPage);
+        const data = await getProfileSuggestions(currentUser._id, 20, '', searchVal, 1);
         response = {
           users: data.suggestions || [],
           hasMore: (data.suggestions || []).length === 20,
@@ -73,7 +71,7 @@ export default function AllProfileSuggestionsScreen() {
         const data = await browseUsers({
           search: searchVal,
           filter: filterVal,
-          page: currentPage,
+          page: 1,
           limit: 20,
         });
         response = {
@@ -88,16 +86,11 @@ export default function AllProfileSuggestionsScreen() {
         ...u,
         isFollowing: followingRaw.includes(u._id) || !!u.isFollowing,
       }));
-      if (reset) {
-        setUsers(usersWithFollow);
-        setPage(2);
-      } else {
-        setUsers(prev => [...prev, ...usersWithFollow]);
-        setPage(prev => prev + 1);
-      }
+      setUsers(usersWithFollow);
+      setPage(2);
       setHasMore(response.hasMore || false);
     } catch {
-      if (reset) setUsers([]);
+      setUsers([]);
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -162,10 +155,18 @@ export default function AllProfileSuggestionsScreen() {
             style={styles.searchInput}
             placeholder="Search by username..."
             value={search}
-            onChangeText={setSearch}
+            onChangeText={text => {
+              setSearch(text);
+              // Immediately trigger search
+              loadUsers(true, text, filter);
+            }}
           />
           {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
+            <TouchableOpacity onPress={() => {
+              setSearch('');
+              // After clearing, reload popular results
+              loadUsers(true, '', filter);
+            }}>
               <Ionicons name="close-circle" size={18} color="#888" style={{ marginLeft: 6 }} />
             </TouchableOpacity>
           )}
@@ -184,8 +185,16 @@ export default function AllProfileSuggestionsScreen() {
           <View style={styles.emptyIconWrap}>
             <FontAwesome5 name="user-friends" size={36} color="#d1d5db" />
           </View>
-          <Text style={styles.emptyText}>No users found</Text>
-          <Text style={styles.emptySubText}>Try adjusting your search or filters to find more people.</Text>
+          <Text style={styles.emptyText}>
+            {search.length > 0
+              ? `No users found matching "${search}"`
+              : 'No users found'}
+          </Text>
+          <Text style={styles.emptySubText}>
+            {search.length > 0
+              ? 'Try a different search term.'
+              : 'Try adjusting your filters to find more people.'}
+          </Text>
         </View>
       ) : (
         <FlatList

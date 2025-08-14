@@ -18,34 +18,25 @@ function PostsFeedScreen() {
   const navigation = useNavigation();
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('forYou');
-  // Add PanResponder for swipe gestures
   const panResponder = React.useRef(
     require('react-native').PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        // Only respond to horizontal swipes that are much stronger than vertical
-        return (
-          Math.abs(gestureState.dx) > 60 && // require a larger horizontal movement
-          Math.abs(gestureState.dx) > 2 * Math.abs(gestureState.dy)
-        );
-      },
+      onMoveShouldSetPanResponder: (evt, gestureState) => (
+        Math.abs(gestureState.dx) > 60 && Math.abs(gestureState.dx) > 2 * Math.abs(gestureState.dy)
+      ),
       onPanResponderRelease: (evt, gestureState) => {
         setActiveTab(prevTab => {
-          if (gestureState.dx < -80 && prevTab === 'forYou') {
-            return 'following';
-          } else if (gestureState.dx > 80 && prevTab === 'following') {
-            return 'forYou';
-          }
+          if (gestureState.dx < -80 && prevTab === 'forYou') return 'following';
+          if (gestureState.dx > 80 && prevTab === 'following') return 'forYou';
           return prevTab;
         });
       },
     })
   ).current;
   const lastScrollY = useRef(0);
-  const feedHeaderAnim = useRef(new Animated.Value(0)).current; // 0: visible, -60: hidden
+  const feedHeaderAnim = useRef(new Animated.Value(0)).current;
   const feedHeaderOpacity = useRef(new Animated.Value(1)).current;
   const FEED_HEADER_HEIGHT = 56;
   const feedRef = useRef(null);
-  // Removed animation logic for FeedHeader
   const [posts, setPosts] = useState([]);
   const [ads, setAds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,6 +46,20 @@ function PostsFeedScreen() {
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [cyclingInfo, setCyclingInfo] = useState(null);
+  // ProfileSuggestions intervals logic
+  const [suggestionIntervals, setSuggestionIntervals] = useState([]);
+  useEffect(() => {
+    const postCount = posts.length;
+    if (postCount < 2) {
+      setSuggestionIntervals([]);
+      return;
+    }
+    // Regenerate intervals every time posts change (refresh or pagination)
+    const first = Math.floor(postCount / 3);
+    const second = Math.floor((2 * postCount) / 3);
+    const intervals = Array.from(new Set([first, second])).filter(i => i > 0 && i < postCount);
+    setSuggestionIntervals(intervals);
+  }, [posts]);
 
   // Initial load
   useEffect(() => {
@@ -155,10 +160,12 @@ function PostsFeedScreen() {
     const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
     const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
     const adIndex = ads.length > 0 ? adInsertionCount % ads.length : 0;
+    // Show ProfileSuggestions at each interval
+    const shouldShowSuggestions = suggestionIntervals.includes(index + 1);
     return (
       <>
         <PostCard post={item} />
-        {index === 4 && (
+        {shouldShowSuggestions && (
           <ProfileSuggestions currentUser={user} />
         )}
         {shouldShowAd && ads.length > 0 && (
