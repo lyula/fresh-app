@@ -1,12 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import MainHeader from '../components/MainHeader';
 
 export default function SettingsScreen() {
   return (
-    <SafeAreaView style={styles.container}>
-      <MainHeader title="Settings" />
+    <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Account</Text>
         <TouchableOpacity style={styles.item}>
@@ -14,6 +11,9 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.item}>
           <Text style={styles.itemText}>Change Password</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.item}>
+          <Text style={styles.itemText}>Verified Badge</Text>
         </TouchableOpacity>
         <Text style={styles.sectionTitle}>Preferences</Text>
         <TouchableOpacity style={styles.item}>
@@ -33,7 +33,7 @@ export default function SettingsScreen() {
           <Text style={[styles.itemText, styles.logoutText]}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
