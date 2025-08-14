@@ -9,6 +9,10 @@ import { UserProvider } from './context/user';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from './screens/LoginScreen';
+import MpesaPaymentScreen from './screens/MpesaPaymentScreen';
+import PaypalPaymentScreen from './screens/PaypalPaymentScreen';
+import StripePaymentScreen from './screens/StripePaymentScreen';
+import CardPaymentScreen from './screens/CardPaymentScreen';
 import RegisterScreen from './screens/RegisterScreen';
 import TermsScreen from './screens/TermsScreen';
 import { StatusBar } from 'expo-status-bar';
@@ -51,6 +55,10 @@ export default function App() {
                 <Stack.Screen name="UpdateProfileScreen" component={require('./screens/UpdateProfileScreen').default} options={{ title: 'Update Profile' }} />
                 <Stack.Screen name="VerificationBadgeScreen" component={require('./screens/VerificationBadgeScreen').default} options={{ title: 'Get Verified' }} />
                 <Stack.Screen name="BadgePaymentScreen" component={require('./screens/BadgePaymentScreen').default} options={{ title: 'Badge Payment' }} />
+                <Stack.Screen name="MpesaPaymentScreen" component={MpesaPaymentScreen} options={{ title: 'M-Pesa Payment' }} />
+                <Stack.Screen name="PaypalPaymentScreen" component={PaypalPaymentScreen} options={{ title: 'PayPal Payment' }} />
+                <Stack.Screen name="StripePaymentScreen" component={StripePaymentScreen} options={{ title: 'Stripe Payment' }} />
+                <Stack.Screen name="CardPaymentScreen" component={CardPaymentScreen} options={{ title: 'Card Payment' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>

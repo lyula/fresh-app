@@ -13,52 +13,13 @@ const PAYMENT_OPTIONS = [
 export default function BadgePaymentScreen() {
   const navigation = useNavigation();
   const { user } = useUser();
-  const [selected, setSelected] = useState('mpesa');
-  const [mpesaNumber, setMpesaNumber] = useState('');
-  const [paypalEmail, setPaypalEmail] = useState('');
-  const [stripeToken, setStripeToken] = useState('');
-  const [cardNumber, setCardNumber] = useState('');
-  const [expiry, setExpiry] = useState('');
-  const [cvc, setCvc] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  function normalizeMpesaNumber(number) {
-    let n = number.trim();
-    if (/^07\d{8}$/.test(n)) return '254' + n.slice(1);
-    if (/^2547\d{8}$/.test(n)) return n;
-    return null;
-  }
-
-  const handlePay = async () => {
-    setError('');
-    setLoading(true);
-    try {
-      if (selected === 'mpesa') {
-        const normalized = normalizeMpesaNumber(mpesaNumber);
-        if (!normalized) throw new Error('Enter a valid M-Pesa number (07... or 2547...)');
-        // API call for M-Pesa
-        // ...existing code...
-        Alert.alert('Payment Initiated', 'Follow the instructions on your phone to complete payment.');
-      } else if (selected === 'paypal') {
-        if (!paypalEmail) throw new Error('Enter your PayPal email');
-        // API call for PayPal
-        Alert.alert('Payment Initiated', 'Check your PayPal for payment instructions.');
-      } else if (selected === 'stripe') {
-        if (!stripeToken) throw new Error('Enter your Stripe token');
-        // API call for Stripe
-        Alert.alert('Payment Initiated', 'Check your Stripe account for payment instructions.');
-      } else if (selected === 'card') {
-        if (!cardNumber || !expiry || !cvc) throw new Error('Enter all card details');
-        // API call for Card
-        Alert.alert('Payment Initiated', 'Check your card statement for payment confirmation.');
-      }
-      navigation.navigate('PaymentsScreen');
-    } catch (err) {
-      setError(err.message || 'Payment failed');
-    } finally {
-      setLoading(false);
-    }
+  const handleOptionPress = (key) => {
+    if (key === 'mpesa') navigation.navigate('MpesaPaymentScreen');
+    else if (key === 'paypal') navigation.navigate('PaypalPaymentScreen');
+    else if (key === 'stripe') navigation.navigate('StripePaymentScreen');
+    else if (key === 'card') navigation.navigate('CardPaymentScreen');
   };
 
   return (
@@ -70,78 +31,17 @@ export default function BadgePaymentScreen() {
         {PAYMENT_OPTIONS.map((opt, idx) => (
           <TouchableOpacity
             key={opt.key}
-            style={[styles.optionBtn, selected === opt.key && styles.selectedOption, idx > 0 && { marginTop: 16 }]}
-            onPress={() => setSelected(opt.key)}
+            style={[styles.optionBtn, idx > 0 && { marginTop: 16 }]}
+            onPress={() => handleOptionPress(opt.key)}
             disabled={loading}
           >
             <View style={styles.logoRow}>
               <Image source={{ uri: opt.logo }} style={styles.logoImg} />
-              <Text style={[styles.optionText, selected === opt.key && styles.selectedText]}>{opt.label}</Text>
+              <Text style={styles.optionText}>{opt.label}</Text>
             </View>
           </TouchableOpacity>
         ))}
       </View>
-      {selected === 'mpesa' && (
-        <TextInput
-          style={styles.input}
-          placeholder="M-Pesa Number (07... or 2547...)"
-          value={mpesaNumber}
-          onChangeText={setMpesaNumber}
-          keyboardType="phone-pad"
-          editable={!loading}
-        />
-      )}
-      {selected === 'paypal' && (
-        <TextInput
-          style={styles.input}
-          placeholder="PayPal Email"
-          value={paypalEmail}
-          onChangeText={setPaypalEmail}
-          keyboardType="email-address"
-          editable={!loading}
-        />
-      )}
-      {selected === 'stripe' && (
-        <TextInput
-          style={styles.input}
-          placeholder="Stripe Token"
-          value={stripeToken}
-          onChangeText={setStripeToken}
-          editable={!loading}
-        />
-      )}
-      {selected === 'card' && (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="Card Number"
-            value={cardNumber}
-            onChangeText={setCardNumber}
-            keyboardType="number-pad"
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="MM/YY"
-            value={expiry}
-            onChangeText={setExpiry}
-            keyboardType="number-pad"
-            editable={!loading}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="CVC"
-            value={cvc}
-            onChangeText={setCvc}
-            keyboardType="number-pad"
-            editable={!loading}
-          />
-        </>
-      )}
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <TouchableOpacity style={[styles.payBtn, { backgroundColor: '#a99d6b' }]} onPress={handlePay} disabled={loading}>
-        <Text style={styles.payBtnText}>{loading ? 'Processing...' : 'Pay & Get Verified'}</Text>
-      </TouchableOpacity>
     </View>
   );
 }
