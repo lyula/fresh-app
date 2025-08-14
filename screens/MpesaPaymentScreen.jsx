@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fetchBadgePricing } from '../src/utils/badgePricing';
 import { getToken } from '../utils/api';
@@ -78,7 +78,7 @@ export default function MpesaPaymentScreen() {
         setLoading(false);
         return;
       }
-      Alert.alert('Payment Initiated', 'Follow the instructions on your phone to complete payment.');
+  Alert.alert('Payment Initiated', 'Please check your phone and enter M-pesa pin to confirm payment');
       navigation.navigate('PaymentsScreen');
     } catch (err) {
       console.log('Payment request error:', err);
@@ -143,6 +143,11 @@ export default function MpesaPaymentScreen() {
       <TouchableOpacity style={styles.payBtn} onPress={handlePay} disabled={loading || !amountKES}>
         <Text style={styles.payBtnText}>{loading ? 'Processing...' : 'Pay & Get Verified'}</Text>
       </TouchableOpacity>
+      {loading && (
+        <View style={styles.spinnerOverlay}>
+          <ActivityIndicator size="large" color="#a99d6b" />
+        </View>
+      )}
     </View>
   );
 }
@@ -161,4 +166,15 @@ const styles = StyleSheet.create({
   error: { color: 'red', marginTop: 8, marginBottom: 8, textAlign: 'center' },
   amountLabel: { fontSize: 16, color: '#222', marginBottom: 4, fontWeight: '500' },
   amountValue: { fontSize: 22, color: '#a99d6b', fontWeight: 'bold', marginBottom: 18 },
+  spinnerOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
 });
