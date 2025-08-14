@@ -15,6 +15,7 @@ export default function AdCard({ ad, onView, onClick }) {
   const [views, setViews] = useState(ad.views || 0);
   const [likeLoading, setLikeLoading] = useState(false);
   const hasTrackedImpression = useRef(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   // Fetch ad interaction state on mount
   useEffect(() => {
@@ -71,126 +72,202 @@ export default function AdCard({ ad, onView, onClick }) {
   const isVerified = author.verified || (author.profile && author.profile.verified);
 
   return (
-    <TouchableOpacity
-      style={styles.card}
-      activeOpacity={0.93}
-      onPress={() => {
-        if (onClick) onClick();
-      }}
-    >
-      {/* Author row */}
-      <View style={styles.headerRow}>
-        {profileImage ? (
-          <Image source={{ uri: profileImage }} style={styles.avatar} />
-        ) : (
-          <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center' }]}> 
-            <Text style={{ color: '#888', fontWeight: 'bold', fontSize: 20 }}>
-              {username[0] ? username[0].toUpperCase() : '?'}
-            </Text>
+    <View>
+      <View style={styles.card}>
+        {/* Author row (always visible) */}
+        <View style={styles.headerRow}>
+          {profileImage ? (
+            <Image source={{ uri: profileImage }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center' }]}> 
+              <Text style={{ color: '#888', fontWeight: 'bold', fontSize: 20 }}>
+                {username[0] ? username[0].toUpperCase() : '?'}
+              </Text>
+            </View>
+          )}
+          <View style={styles.headerTextCol}>
+            <View style={styles.authorBadgeRow}>
+              <Text style={styles.author}>{username}</Text>
+              {isVerified && (
+                <Image source={require('../assets/blue-badge.png')} style={styles.badge} />
+              )}
+            </View>
+            <Text style={styles.sponsored}>Sponsored</Text>
+          </View>
+          <View style={styles.adBanner}>
+            <Text style={styles.adBannerText}>AD</Text>
+          </View>
+        </View>
+        {ad.image && (
+          <View style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 0 }}>
+            <Image source={{ uri: ad.image }} style={[styles.image, { resizeMode: 'cover' }]} />
           </View>
         )}
-        <View style={styles.headerTextCol}>
-          <View style={styles.authorBadgeRow}>
-            <Text style={styles.author}>{username}</Text>
-            {isVerified && (
-              <Image source={require('../assets/blue-badge.png')} style={styles.badge} />
-            )}
-          </View>
-          <Text style={styles.sponsored}>Sponsored</Text>
-        </View>
-        <View style={styles.adBanner}>
-          <Text style={styles.adBannerText}>AD</Text>
-        </View>
-      </View>
-      {ad.image && (
-        <View style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 0 }}>
-          <Image source={{ uri: ad.image }} style={styles.image} resizeMode="cover" />
-        </View>
-      )}
-      <Text style={styles.title}>{ad.title}</Text>
-      <Text style={styles.desc}>{ad.description}</Text>
 
-      {/* Ad Action Button (styled) */}
-      {(() => {
-        const contactMethod = ad.contactMethod || '';
-        const linkUrl = ad.linkUrl || '';
-        const whatsappNumber = ad.whatsappNumber || '';
-        if (contactMethod === 'link' && linkUrl) {
-          return (
-            <TouchableOpacity
-              style={[styles.adButton, { backgroundColor: '#1E3A8A' }]}
-              activeOpacity={0.88}
-              onPress={() => {
-                if (linkUrl) {
-                  // Open link in browser
-                  if (typeof window !== 'undefined') {
-                    window.open(linkUrl, '_blank');
-                  } else {
-                    // For React Native, use Linking
-                    try {
-                      const Linking = require('react-native').Linking;
-                      Linking.openURL(linkUrl);
-                    } catch {}
+        {/* Default ad info */}
+        <Text style={styles.title}>{ad.title}</Text>
+        <Text style={styles.desc}>{ad.description}</Text>
+
+        {/* Ad Action Button (styled) */}
+        {(() => {
+          const contactMethod = ad.contactMethod || '';
+          const linkUrl = ad.linkUrl || '';
+          const whatsappNumber = ad.whatsappNumber || '';
+          if (contactMethod === 'link' && linkUrl) {
+            return (
+              <TouchableOpacity
+                style={[styles.adButton, { backgroundColor: '#1E3A8A' }]}
+                activeOpacity={0.88}
+                onPress={() => {
+                  if (linkUrl) {
+                    if (typeof window !== 'undefined') {
+                      window.open(linkUrl, '_blank');
+                    } else {
+                      try {
+                        const Linking = require('react-native').Linking;
+                        Linking.openURL(linkUrl);
+                      } catch {}
+                    }
                   }
-                }
-              }}
-            >
-              <Text style={styles.adButtonText}>Visit Link</Text>
-            </TouchableOpacity>
-          );
-        }
-        if (contactMethod === 'whatsapp' && whatsappNumber) {
-          return (
-            <TouchableOpacity
-              style={[styles.adButton, { backgroundColor: '#25D366' }]}
-              activeOpacity={0.88}
-              onPress={() => {
-                const url = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}`;
-                try {
-                  const Linking = require('react-native').Linking;
-                  Linking.openURL(url);
-                } catch {}
-              }}
-            >
-              <Text style={styles.adButtonText}>WhatsApp</Text>
-            </TouchableOpacity>
-          );
-        }
-        if (contactMethod === 'direct-message') {
-          return (
-            <TouchableOpacity
-              style={[styles.adButton, { backgroundColor: '#7c3aed' }]}
-              activeOpacity={0.88}
-              onPress={() => {
-                // Implement navigation to chat screen if needed
-              }}
-            >
-              <Text style={styles.adButtonText}>Send Direct Message</Text>
-            </TouchableOpacity>
-          );
-        }
-        return null;
-      })()}
+                }}
+              >
+                <Text style={styles.adButtonText}>Visit Link</Text>
+              </TouchableOpacity>
+            );
+          }
+          if (contactMethod === 'whatsapp' && whatsappNumber) {
+            return (
+              <TouchableOpacity
+                style={[styles.adButton, { backgroundColor: '#25D366' }]}
+                activeOpacity={0.88}
+                onPress={() => {
+                  const url = `https://wa.me/${whatsappNumber.replace(/[^\d]/g, '')}`;
+                  try {
+                    const Linking = require('react-native').Linking;
+                    Linking.openURL(url);
+                  } catch {}
+                }}
+              >
+                <Text style={styles.adButtonText}>WhatsApp</Text>
+              </TouchableOpacity>
+            );
+          }
+          if (contactMethod === 'direct-message') {
+            return (
+              <TouchableOpacity
+                style={[styles.adButton, { backgroundColor: '#7c3aed' }]}
+                activeOpacity={0.88}
+                onPress={() => {
+                  // Implement navigation to chat screen if needed
+                }}
+              >
+                <Text style={styles.adButtonText}>Send Direct Message</Text>
+              </TouchableOpacity>
+            );
+          }
+          return null;
+        })()}
 
-      <View style={{ paddingBottom: 16 }}>
-        <PostsInteractionBar
-          likes={likesCount}
-          comments={commentsCount}
-          shareCount={ad.shares || 0}
-          views={views}
-          likedBy={[]} // Not used for ads, disables local like state logic
-          postId={ad._id}
-          liked={liked}
-          onLike={handleLike}
-          onComment={() => {}}
-          onShare={() => {}}
-        />
+        <View style={{ paddingBottom: 16 }}>
+          <PostsInteractionBar
+            likes={likesCount}
+            comments={commentsCount}
+            shareCount={ad.shares || 0}
+            views={views}
+            likedBy={[]} // Not used for ads, disables local like state logic
+            postId={ad._id}
+            liked={liked}
+            onLike={handleLike}
+            onComment={() => {}}
+            onShare={() => {}}
+          />
+        </View>
+
+        {/* Management-only: View Details button (now below interaction bar) */}
+        {onView && (
+          <TouchableOpacity
+            style={[styles.adButton, { backgroundColor: '#a99d6b', marginTop: 4 }]}
+            activeOpacity={0.88}
+            onPress={() => setShowDetails(!showDetails)}
+          >
+            <Text style={styles.adButtonText}>{showDetails ? 'Hide Details' : 'View Details'}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Extra details below default info, only if toggled */}
+        {showDetails && (
+          <View style={{ marginTop: 12 }}>
+            <Text style={styles.detailsTitle}>Ad Details</Text>
+            <Text style={styles.detailsLabel}>Category:</Text>
+            <Text style={styles.detailsValue}>{ad.category}</Text>
+            <Text style={styles.detailsLabel}>Status:</Text>
+            <Text style={styles.detailsValue}>{ad.status}</Text>
+            <Text style={styles.detailsLabel}>Impressions:</Text>
+            <Text style={styles.detailsValue}>{ad.performance?.impressions ?? 'N/A'}</Text>
+            <Text style={styles.detailsLabel}>Clicks:</Text>
+            <Text style={styles.detailsValue}>{ad.performance?.clicks ?? 'N/A'}</Text>
+            <Text style={styles.detailsLabel}>CTR:</Text>
+            <Text style={styles.detailsValue}>{ad.performance?.clickThroughRate ? ad.performance.clickThroughRate.toFixed(2) + '%' : 'N/A'}</Text>
+          </View>
+        )}
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  detailsModal: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+  },
+  detailsContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 24,
+    width: '85%',
+    elevation: 6,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    alignItems: 'flex-start',
+  },
+  detailsTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 12,
+    color: '#222',
+  },
+  detailsLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 8,
+    color: '#555',
+  },
+  detailsValue: {
+    fontSize: 14,
+    color: '#333',
+    marginTop: 2,
+  },
+  closeButton: {
+    marginTop: 18,
+    alignSelf: 'center',
+    backgroundColor: '#a99d6b',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  closeButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
   adButton: {
     width: '100%',
     marginTop: 8,

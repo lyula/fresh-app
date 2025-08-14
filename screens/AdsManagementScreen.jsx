@@ -21,11 +21,11 @@ export default function AdsManagementScreen() {
     setError('');
     try {
       const result = await getUserAds();
-      console.log('Fetched ads:', result);
+  // Removed noisy console.log
       setAds(result || []);
     } catch (err) {
       setError(err.message || 'Failed to fetch ads');
-      console.log('Fetch ads error:', err);
+  // Removed noisy console.log
     } finally {
       setLoading(false);
     }
@@ -95,7 +95,7 @@ export default function AdsManagementScreen() {
       ) : (
         <View style={styles.grid}>
           {filteredAds.map(ad => (
-            <AdCard key={ad._id} ad={ad} />
+            <AdCard key={ad._id} ad={ad} onView={() => {}} />
           ))}
         </View>
       )}
