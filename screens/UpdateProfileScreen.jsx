@@ -83,8 +83,8 @@ export default function UpdateProfileScreen({ route }) {
         } catch (err) {
           console.warn('Failed to refresh profile after update:', err);
         }
+        // Stay on this page and show updated details
         setTimeout(() => setMessage(''), 2000);
-        navigation.goBack();
       } else {
         setMessage(res.message || 'Update failed.');
       }
