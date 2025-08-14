@@ -77,6 +77,14 @@ export default function UpdateProfileScreen({ route }) {
       });
       if (res && res.username) {
         setMessage('Profile updated successfully!');
+        // Force refresh user context so all components get the latest image
+        try {
+          const { getProfile } = require('../utils/user');
+          const freshProfile = await getProfile();
+          setUser(freshProfile);
+        } catch (err) {
+          console.warn('Failed to refresh profile after update:', err);
+        }
         setTimeout(() => setMessage(''), 2000);
         navigation.goBack();
       } else {
