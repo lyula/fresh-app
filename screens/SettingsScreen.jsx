@@ -16,7 +16,7 @@ export default function SettingsScreen() {
           <MaterialCommunityIcons name="account-edit" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Edit Profile</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('VerificationBadgeScreen')}>
           <Image source={require('../assets/blue-badge.png')} style={[styles.icon, { width: 22, height: 22 }]} />
           <Text style={styles.itemText}>Verified Badge</Text>
         </TouchableOpacity>
