@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import moment from 'moment';
 import { useUser } from '../context/user';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { updateProfile as updateProfileApi, uploadToCloudinary } from '../utils/user';
 
 export default function UpdateProfileScreen({ route }) {
   const navigation = useNavigation();
@@ -39,13 +41,51 @@ export default function UpdateProfileScreen({ route }) {
 
   const handleSave = async () => {
     setLoading(true);
-    // TODO: Implement API call to update profile
-    setTimeout(() => {
-      setLoading(false);
-      setMessage('Profile updated successfully!');
-      setTimeout(() => setMessage(''), 2000);
-      navigation.goBack();
-    }, 1200);
+    setMessage('');
+    try {
+      // Validate username
+      if (!form.username || form.username.length < 3 || form.username.length > 30 || /\s/.test(form.username)) {
+        setMessage('Invalid username. Use 3-30 characters, no spaces.');
+        setLoading(false);
+        return;
+      }
+      let profileImageUrl = form.profileImage;
+      // If profileImage is a local file, upload to Cloudinary
+      if (profileImageUrl && profileImageUrl.startsWith('file')) {
+        setMessage('Uploading image...');
+        try {
+          const uploadRes = await uploadToCloudinary(profileImageUrl);
+          profileImageUrl = uploadRes.secure_url;
+        } catch (err) {
+          setMessage('Image upload failed.');
+          setLoading(false);
+          return;
+        }
+      }
+      // Prepare profile object
+      const profileObj = {
+        bio: form.bio,
+        website: form.website,
+        location: form.location,
+        profileImage: profileImageUrl,
+      };
+      // Call API
+      const res = await updateProfileApi({
+        username: form.username,
+        email: form.email,
+        profile: profileObj,
+      });
+      if (res && res.username) {
+        setMessage('Profile updated successfully!');
+        setTimeout(() => setMessage(''), 2000);
+        navigation.goBack();
+      } else {
+        setMessage(res.message || 'Update failed.');
+      }
+    } catch (err) {
+      setMessage('Failed to update profile.');
+    }
+    setLoading(false);
   };
 
   return (
@@ -68,38 +108,49 @@ export default function UpdateProfileScreen({ route }) {
           })()}
           style={styles.avatar}
         />
-        <TouchableOpacity style={styles.changePhotoBtn}>
+        <TouchableOpacity style={styles.changePhotoBtn} onPress={async () => {
+          let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.8,
+          });
+          if (!result.canceled && result.assets && result.assets.length > 0) {
+            setForm({ ...form, profileImage: result.assets[0].uri });
+          }
+        }}>
           <Text style={styles.changePhotoText}>Change Profile Picture</Text>
         </TouchableOpacity>
       </View>
+      <Text style={styles.inputLabel}>Username</Text>
       <TextInput
         style={styles.input}
         placeholder="Username"
         value={form.username}
         onChangeText={text => handleChange('username', text)}
       />
-      <View style={styles.readOnlyRow}>
-        <Text style={styles.readOnlyLabel}>Date Joined:</Text>
-        <Text style={styles.readOnlyValue}>{form.dateJoined ? moment(form.dateJoined).format('MMMM D, YYYY') : 'N/A'}</Text>
-      </View>
+      <Text style={styles.inputLabel}>Email</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
         value={form.email}
         onChangeText={text => handleChange('email', text)}
       />
+      <Text style={styles.inputLabel}>Bio</Text>
       <TextInput
         style={styles.input}
         placeholder="Bio"
         value={form.bio}
         onChangeText={text => handleChange('bio', text)}
       />
+      <Text style={styles.inputLabel}>Website</Text>
       <TextInput
         style={styles.input}
         placeholder="Website"
         value={form.website}
         onChangeText={text => handleChange('website', text)}
       />
+      <Text style={styles.inputLabel}>Location</Text>
       <TextInput
         style={styles.input}
         placeholder="Location"
@@ -129,6 +180,7 @@ const styles = StyleSheet.create({
   saveBtn: { backgroundColor: '#1e3a8a', padding: 16, borderRadius: 8, alignItems: 'center', marginTop: 8 },
   saveBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
   message: { color: '#16a34a', marginTop: 16, textAlign: 'center', fontWeight: 'bold' },
+  inputLabel: { fontSize: 15, color: '#222', marginBottom: 4, marginLeft: 2, fontWeight: '500' },
   readOnlyRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 14 },
   readOnlyLabel: { fontSize: 16, color: '#555', marginRight: 8 },
   readOnlyValue: { fontSize: 16, color: '#222', fontWeight: 'bold' },
