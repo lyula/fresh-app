@@ -48,10 +48,10 @@ export default function BadgePaymentScreen() {
       {user?.verified && badgeExpiry ? (
         <View style={{ alignItems: 'center', marginVertical: 18 }}>
           <Text style={styles.amountLabel}>Your badge is active!</Text>
-          <Text style={styles.amountLabel}>Expiry Date:</Text>
-          <Text style={styles.amountValue}>{new Date(badgeExpiry).toLocaleString()}</Text>
-          <TouchableOpacity style={styles.payBtn} disabled={true}>
-            <Text style={styles.payBtnText}>Badge active until {new Date(badgeExpiry).toLocaleDateString()}</Text>
+          <Text style={styles.amountLabel}>Valid through:</Text>
+          <Text style={styles.amountValue}>{new Date(badgeExpiry).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
+          <TouchableOpacity style={[styles.payBtn, { opacity: 0.6 }]} disabled={true}>
+            <Text style={styles.payBtnText}>Valid through: {new Date(badgeExpiry).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</Text>
           </TouchableOpacity>
         </View>
       ) : (
