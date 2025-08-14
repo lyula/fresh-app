@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { fetchBadgePricing } from '../src/utils/badgePricing';
+import { getToken } from '../utils/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 function normalizeMpesaNumber(number) {
   let n = number.trim();
@@ -40,24 +42,38 @@ export default function MpesaPaymentScreen() {
     }
     try {
       const API_BASE = process.env.EXPO_PUBLIC_API_URL || '';
+      const token = await getToken();
+      // Get username from AsyncStorage
+      let username = await AsyncStorage.getItem('username');
+      if (!username) username = 'Customer';
+      const payload = {
+        phone_number: normalized,
+        amount: amountKES,
+        billingType,
+        customer_name: username
+      };
+      console.log('Initiating payment with:', payload);
       const res = await fetch(`${API_BASE}/badge-payments/initiate-stk`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          phone_number: normalized,
-          amount: amountKES,
-          billingType
-        })
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
       });
+      console.log('Response status:', res.status);
       let data = null;
       try {
         data = await res.json();
+        console.log('Response data:', data);
       } catch (e) {
+        console.log('Error parsing response:', e);
         setError('Unexpected server response.');
         setLoading(false);
         return;
       }
       if (!res.ok || !data.CheckoutRequestID) {
+        console.log('Payment initiation failed:', data?.error);
         setError(data?.error || 'Failed to initiate payment.');
         setLoading(false);
         return;
@@ -65,6 +81,7 @@ export default function MpesaPaymentScreen() {
       Alert.alert('Payment Initiated', 'Follow the instructions on your phone to complete payment.');
       navigation.navigate('PaymentsScreen');
     } catch (err) {
+      console.log('Payment request error:', err);
       setError(err.message || 'Payment failed');
     } finally {
       setLoading(false);
