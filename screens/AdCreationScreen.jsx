@@ -25,7 +25,8 @@ export default function AdCreationScreen() {
   const [category, setCategory] = useState("");
   const [linkUrl, setLinkUrl] = useState("");
   const [whatsappNumber, setWhatsappNumber] = useState("");
-  const [whatsappCountryCode, setWhatsappCountryCode] = useState("");
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState(COUNTRIES[0]?.code || "");
+  const [showWhatsappCodeDropdown, setShowWhatsappCodeDropdown] = useState(false);
   const [countryQuery, setCountryQuery] = useState("");
   const [contactMethod, setContactMethod] = useState("link");
   const [selectedCountries, setSelectedCountries] = useState([]);
@@ -186,9 +187,15 @@ export default function AdCreationScreen() {
           <TextInput style={styles.input} placeholder="Destination URL" value={linkUrl} onChangeText={setLinkUrl} />
         )}
         {contactMethod === 'whatsapp' && (
-          <View style={{flexDirection: 'row', gap: 8, marginBottom: 8}}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8}}>
+            <TextInput
+              style={[styles.input, {width: 100}]}
+              placeholder="Code"
+              value={whatsappCountryCode}
+              onChangeText={setWhatsappCountryCode}
+              keyboardType="number-pad"
+            />
             <TextInput style={[styles.input, {flex: 1}]} placeholder="WhatsApp number" value={whatsappNumber} onChangeText={setWhatsappNumber} keyboardType="phone-pad" />
-            <TextInput style={[styles.input, {width: 80}]} placeholder="Code" value={whatsappCountryCode} onChangeText={setWhatsappCountryCode} />
           </View>
         )}
         {/* Targeting Type */}
@@ -220,7 +227,21 @@ export default function AdCreationScreen() {
           </View>
         )}
         {/* Duration */}
-        <TextInput style={styles.input} placeholder="Duration (days)" value={duration.toString()} onChangeText={v => setDuration(Number(v) || 1)} keyboardType="numeric" />
+        <Text style={styles.label}>Duration (days)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter duration in days"
+          value={duration === 0 ? '' : duration.toString()}
+          onChangeText={v => {
+            const num = Number(v);
+            if (v === '') {
+              setDuration(0);
+            } else if (!isNaN(num) && num > 0) {
+              setDuration(num);
+            }
+          }}
+          keyboardType="numeric"
+        />
         {/* Target Userbase Dropdown */}
         <Text style={styles.label}>Target Userbase</Text>
         <View style={styles.dropdownWrap}>
