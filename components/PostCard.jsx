@@ -9,6 +9,35 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import PostsInteractionBar from './PostsInteractionBar';
 import { formatDurationAgo } from '../utils/time';
+// Use client format for time ago
+function formatPostDate(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000); // difference in seconds
+  if (diff < 60) return "now";
+  if (diff < 3600) {
+    const mins = Math.floor(diff / 60);
+    return `${mins}m ago`;
+  }
+  if (diff < 86400) {
+    const hrs = Math.floor(diff / 3600);
+    return `${hrs}h ago`;
+  }
+  if (diff < 604800) {
+    const days = Math.floor(diff / 86400);
+    return `${days}d ago`;
+  }
+  if (diff < 2592000) {
+    const weeks = Math.floor(diff / 604800);
+    return `${weeks}w ago`;
+  }
+  if (diff < 31536000) {
+    const months = Math.floor(diff / 2592000);
+    return `${months}mo ago`;
+  }
+  const years = Math.floor(diff / 31536000);
+  return `${years}y ago`;
+}
 import { incrementPostShareCount } from '../utils/api';
 
 export default function PostCard({ post }) {
@@ -96,7 +125,7 @@ export default function PostCard({ post }) {
                 </View>
               )}
               <Text style={styles.dot}>•</Text>
-              <Text style={[styles.time, { marginLeft: 12 }]}>{formatDurationAgo(post.createdAt)}</Text>
+              <Text style={[styles.time, { marginLeft: 12 }]}>{formatPostDate(post.createdAt)}</Text>
             </View>
           </View>
           <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginLeft: 8, padding: 4 }}>

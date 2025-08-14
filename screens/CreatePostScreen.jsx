@@ -38,13 +38,15 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
     setLoading(true);
     setError('');
     try {
-  // Send post to backend
-  await createPost({ content, images, videos });
-  setContent('');
-  setImages([]);
-  setVideos([]);
-  if (onPostCreated) onPostCreated();
-  if (navigation) navigation.goBack();
+      // Send post to backend
+      const newPost = await createPost({ content, images, videos });
+      setContent('');
+      setImages([]);
+      setVideos([]);
+      if (onPostCreated) onPostCreated(newPost);
+      if (navigation) {
+        navigation.navigate('PostsFeed', { newPost });
+      }
     } catch (e) {
       setError('Failed to create post.');
     }

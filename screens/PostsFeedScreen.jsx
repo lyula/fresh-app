@@ -16,6 +16,8 @@ import { fetchAds } from '../utils/ads';
 
 function PostsFeedScreen() {
   const navigation = useNavigation();
+  // Get newPost from navigation params
+  const newPost = navigation?.getState?.()?.routes?.find(r => r.name === 'PostsFeed')?.params?.newPost;
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('forYou');
   const panResponder = React.useRef(
@@ -79,6 +81,12 @@ function PostsFeedScreen() {
         hasMoreVal = postsResult.hasMore !== false;
         cycling = postsResult.cyclingInfo || null;
       }
+      // Prepend newPost if present
+      if (newPost && newPost._id) {
+        postsArr = [newPost, ...postsArr.filter(p => p._id !== newPost._id)];
+      }
+      // Sort posts by createdAt descending
+      postsArr = postsArr.filter(p => p.createdAt).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setPosts(postsArr || []);
       setAds(Array.isArray(adsData) ? adsData : (adsData.ads || []));
       setOffset(postsArr.length);
@@ -91,7 +99,7 @@ function PostsFeedScreen() {
       setLoading(false);
     });
     return () => { isMounted = false; };
-  }, []);
+  }, [newPost]);
 
   // Pull-to-refresh
   const onRefresh = async () => {
