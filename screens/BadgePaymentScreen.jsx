@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { getToken } from '../utils/api';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/user';
@@ -14,6 +15,24 @@ export default function BadgePaymentScreen() {
   const navigation = useNavigation();
   const { user } = useUser();
   const [loading, setLoading] = useState(false);
+  const [badgeExpiry, setBadgeExpiry] = useState(null);
+  useEffect(() => {
+    (async () => {
+      if (user?.verified) {
+        const API_BASE = process.env.EXPO_PUBLIC_API_URL || '';
+        const token = await getToken();
+        try {
+          const res = await fetch(`${API_BASE}/badge-payments/latest`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const badge = await res.json();
+            if (badge?.periodEnd) setBadgeExpiry(badge.periodEnd);
+          }
+        } catch {}
+      }
+    })();
+  }, [user]);
 
   const handleOptionPress = (key) => {
     if (key === 'mpesa') navigation.navigate('MpesaPaymentScreen');
@@ -26,22 +45,35 @@ export default function BadgePaymentScreen() {
     <View style={styles.container}>
       <Image source={require('../assets/blue-badge.png')} style={styles.badgeImage} />
       <Text style={styles.title}>Verification Badge Payment</Text>
-      <Text style={styles.subtitle}>Choose your payment method:</Text>
-      <View style={styles.optionsCol}>
-        {PAYMENT_OPTIONS.map((opt, idx) => (
-          <TouchableOpacity
-            key={opt.key}
-            style={[styles.optionBtn, idx > 0 && { marginTop: 16 }]}
-            onPress={() => handleOptionPress(opt.key)}
-            disabled={loading}
-          >
-            <View style={styles.logoRow}>
-              <Image source={{ uri: opt.logo }} style={styles.logoImg} />
-              <Text style={styles.optionText}>{opt.label}</Text>
-            </View>
+      {user?.verified && badgeExpiry ? (
+        <View style={{ alignItems: 'center', marginVertical: 18 }}>
+          <Text style={styles.amountLabel}>Your badge is active!</Text>
+          <Text style={styles.amountLabel}>Expiry Date:</Text>
+          <Text style={styles.amountValue}>{new Date(badgeExpiry).toLocaleString()}</Text>
+          <TouchableOpacity style={styles.payBtn} disabled={true}>
+            <Text style={styles.payBtnText}>Badge active until {new Date(badgeExpiry).toLocaleDateString()}</Text>
           </TouchableOpacity>
-        ))}
-      </View>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.subtitle}>Choose your payment method:</Text>
+          <View style={styles.optionsCol}>
+            {PAYMENT_OPTIONS.map((opt, idx) => (
+              <TouchableOpacity
+                key={opt.key}
+                style={[styles.optionBtn, idx > 0 && { marginTop: 16 }]}
+                onPress={() => handleOptionPress(opt.key)}
+                disabled={loading}
+              >
+                <View style={styles.logoRow}>
+                  <Image source={{ uri: opt.logo }} style={styles.logoImg} />
+                  <Text style={styles.optionText}>{opt.label}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
     </View>
   );
 }

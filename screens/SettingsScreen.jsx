@@ -7,7 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const { logout } = useUser();
+  const { user, logout } = useUser();
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -18,7 +18,10 @@ export default function SettingsScreen() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('VerificationBadgeScreen')}>
           <Image source={require('../assets/blue-badge.png')} style={[styles.icon, { width: 22, height: 22 }]} />
-          <Text style={styles.itemText}>Verified Badge</Text>
+          <View style={styles.rowBetween}>
+            <Text style={styles.itemText}>Verified Badge</Text>
+            {user?.verified ? <Text style={styles.activeText}>Active</Text> : null}
+          </View>
         </TouchableOpacity>
         <Text style={styles.sectionTitle}>Preferences</Text>
         <TouchableOpacity style={styles.item}>
@@ -55,8 +58,10 @@ const styles = StyleSheet.create({
   content: { padding: 20 },
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#222', marginTop: 8, marginBottom: 12 },
   item: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderRadius: 10, padding: 16, marginBottom: 12, elevation: 1 },
+  rowBetween: { flex: 1, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   icon: { marginRight: 12 },
   itemText: { fontSize: 16, color: '#222' },
   logout: { backgroundColor: '#ffeaea' },
+  activeText: { color: '#22c55e', fontWeight: 'bold', marginLeft: 8 },
   logoutText: { color: '#e74c3c', fontWeight: 'bold' },
 });

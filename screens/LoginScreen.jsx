@@ -88,10 +88,10 @@ export default function LoginScreen() {
       console.log('[Login] Result:', result);
       if (result.token) {
         await AsyncStorage.setItem('token', result.token);
-        setLoading(false);
-        navigation.replace('PostsFeed');
-        // Refresh user context after navigation for instant update
-        setTimeout(() => { refreshUser(); }, 0);
+  // Refresh user context before navigation for instant update
+  await refreshUser();
+  setLoading(false);
+  navigation.replace('PostsFeed');
       } else {
         setLoading(false);
         setError(result.message || 'Login failed.');
