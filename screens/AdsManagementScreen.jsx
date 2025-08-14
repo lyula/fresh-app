@@ -47,8 +47,9 @@ export default function AdsManagementScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Ad Management</Text>
-      <Text style={styles.subHeader}>Manage your advertisements and track their performance</Text>
+      <TouchableOpacity style={{width: '100%', backgroundColor: '#a99d6b', paddingVertical: 14, borderRadius: 8, marginBottom: 8, justifyContent: 'center', alignItems: 'center'}} onPress={() => navigation.navigate('AdCreationScreen')}>
+        <Text style={{color: '#fff', fontWeight: 'bold', fontSize: 16, textAlign: 'center'}}>Create Ad</Text>
+      </TouchableOpacity>
       {/* Stats Overview */}
       <View style={styles.statsRow}>
         <View style={styles.statCard}><Text style={styles.statLabel}>Total Ads</Text><Text style={styles.statValue}>{ads.length}</Text></View>

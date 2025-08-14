@@ -46,6 +46,7 @@ export default function App() {
                 <Stack.Screen name="PaymentsScreen" component={require('./screens/PaymentsScreen').default} options={{ title: 'Payments' }} />
                 <Stack.Screen name="PaymentsDetailScreen" component={require('./screens/PaymentsDetailScreen').default} options={{ title: 'Payment Details' }} />
                 <Stack.Screen name="AdsManagementScreen" component={require('./screens/AdsManagementScreen').default} options={{ title: 'Ad Management' }} />
+                <Stack.Screen name="AdCreationScreen" component={require('./screens/AdCreationScreen').default} options={{ title: 'Create Ad' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>
