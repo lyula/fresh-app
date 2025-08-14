@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
-import { Platform } from 'react-native';
+import { createPost } from '../utils/createPost';
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
 import { Video } from 'expo-av';
 import { useUser } from '../context/user';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,18 +11,23 @@ const GOLD = '#a99d6b';
 export default function CreatePostScreen({ navigation, onPostCreated, visible = true, onClose }) {
   const { userId, user } = useUser();
   const [content, setContent] = useState('');
-  const [image, setImage] = useState(null);
+  const [images, setImages] = useState([]); // Array of image URIs
+  const [videos, setVideos] = useState([]); // Array of video URIs
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [video, setVideo] = useState(null);
 
-  // Placeholder for image picker
-  const handlePickImage = () => {
-    // TODO: Implement image picker
+  // Example image picker for multiple images
+  const handlePickImage = async () => {
+    // Replace with your image picker logic (e.g., expo-image-picker)
+    // This is a placeholder for multiple selection
+    // Example: let result = await ImagePicker.launchImageLibraryAsync({ allowsMultipleSelection: true });
+    // if (!result.canceled) setImages([...images, ...result.assets.map(a => a.uri)]);
   };
-  // Placeholder for video picker
-  const handlePickVideo = () => {
-    // TODO: Implement video picker
+  // Example video picker for multiple videos
+  const handlePickVideo = async () => {
+    // Replace with your video picker logic (e.g., expo-image-picker)
+    // Example: let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'Videos', allowsMultipleSelection: true });
+    // if (!result.canceled) setVideos([...videos, ...result.assets.map(a => a.uri)]);
   };
 
   const handleSubmit = async () => {
@@ -33,12 +38,13 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
     setLoading(true);
     setError('');
     try {
-      // TODO: Implement API call to create post
-      setContent('');
-      setImage(null);
-      setVideo(null);
-      if (onPostCreated) onPostCreated();
-      if (navigation) navigation.goBack();
+  // Send post to backend
+  await createPost({ content, images, videos });
+  setContent('');
+  setImages([]);
+  setVideos([]);
+  if (onPostCreated) onPostCreated();
+  if (navigation) navigation.goBack();
     } catch (e) {
       setError('Failed to create post.');
     }
@@ -48,66 +54,96 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
-      <SafeAreaView style={styles.centeredContainer}>
-  {/* Header removed, Cancel is now in user row */}
-  <View style={styles.formContent}>
-        <View style={styles.userRowFlat}>
-          <Image
-            source={{ uri: (user?.profileImage || user?.profile?.profileImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png') }}
-            style={styles.avatarFlat}
-          />
-          <Text style={styles.usernameFlat}>{user?.username || 'User'}</Text>
-            <View style={styles.flexGrow} />
-            <TouchableOpacity onPress={onClose || (() => navigation && navigation.goBack())}>
-              <Text style={[styles.flatCancel, styles.cancelRightPad]}>Cancel</Text>
-            </TouchableOpacity>
-        </View>
-        {image && (
-          <Image source={{ uri: image }} style={styles.mediaPreviewFlat} />
-        )}
-        {video && (
-          <Video
-            source={{ uri: video }}
-            style={styles.mediaPreviewFlat}
-            useNativeControls
-            resizeMode="contain"
-            shouldPlay={false}
-          />
-        )}
-        <TextInput
-          style={styles.inputFlat}
-          placeholder="What's on your mind?"
-          placeholderTextColor="#888"
-          multiline
-          value={content}
-          onChangeText={setContent}
-          textAlignVertical={Platform.OS === 'android' ? 'top' : 'auto'}
-          maxLength={2200}
-        />
-        <View style={styles.mediaAndPostRow}>
-          <View style={styles.mediaPickerRowFlat}>
-            <TouchableOpacity style={styles.iconBtnFlat} onPress={handlePickImage}>
-              <Ionicons name="image-outline" size={26} color={LINK_COLOR} />
-              <Text style={styles.mediaPickerLabelFlat}>Image</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconBtnFlat} onPress={handlePickVideo}>
-              <Ionicons name="videocam-outline" size={26} color={LINK_COLOR} />
-              <Text style={styles.mediaPickerLabelFlat}>Video</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.flexGrow} />
-          <TouchableOpacity 
-            style={[styles.postBtnFlat, (!content.trim() || loading) && { opacity: 0.6 }]}
-            onPress={handleSubmit} 
-            disabled={loading || !content.trim()}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <SafeAreaView style={styles.centeredContainer}>
+          <ScrollView
+            style={{ width: '100%' }}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
           >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.postBtnTextFlat}>Post</Text>}
-          </TouchableOpacity>
-        </View>
-        {error ? <Text style={styles.errorFlat}>{error}</Text> : null}
-      </View>
-    </SafeAreaView>
-  </>
+            <View style={styles.formContent}>
+              <View style={styles.userRowFlat}>
+                <Image
+                  source={{ uri: (user?.profileImage || user?.profile?.profileImage || 'https://cdn-icons-png.flaticon.com/512/149/149071.png') }}
+                  style={styles.avatarFlat}
+                />
+                <Text style={styles.usernameFlat}>{user?.username || 'User'}</Text>
+                <View style={styles.flexGrow} />
+                <TouchableOpacity onPress={onClose || (() => navigation && navigation.goBack())}>
+                  <Text style={[styles.flatCancel, styles.cancelRightPad]}>Cancel</Text>
+                </TouchableOpacity>
+              </View>
+              {/* Preview selected images */}
+              {images.length > 0 && (
+                <ScrollView horizontal style={{ marginBottom: 12 }}>
+                  {images.map((img, idx) => (
+                    <Image key={idx} source={{ uri: img }} style={styles.mediaPreviewFlat} />
+                  ))}
+                </ScrollView>
+              )}
+              {/* Preview selected videos */}
+              {videos.length > 0 && (
+                <ScrollView horizontal style={{ marginBottom: 12 }}>
+                  {videos.map((vid, idx) => (
+                    <Video
+                      key={idx}
+                      source={{ uri: vid }}
+                      style={styles.mediaPreviewFlat}
+                      useNativeControls
+                      resizeMode="contain"
+                      shouldPlay={false}
+                    />
+                  ))}
+                </ScrollView>
+              )}
+              <View style={styles.inputContainerFlat}>
+                <ScrollView
+                  style={styles.inputScrollFlat}
+                  contentContainerStyle={{ flexGrow: 1 }}
+                  keyboardShouldPersistTaps="handled"
+                >
+                  <TextInput
+                    style={styles.inputFlat}
+                    placeholder="What's on your mind?"
+                    placeholderTextColor="#888"
+                    multiline
+                    value={content}
+                    onChangeText={setContent}
+                    textAlignVertical={Platform.OS === 'android' ? 'top' : 'auto'}
+                    maxLength={2200}
+                  />
+                </ScrollView>
+              </View>
+              <View style={styles.mediaAndPostRow}>
+                <View style={styles.mediaPickerRowFlat}>
+                  <TouchableOpacity style={styles.iconBtnFlat} onPress={handlePickImage}>
+                    <Ionicons name="image-outline" size={26} color={LINK_COLOR} />
+                    <Text style={styles.mediaPickerLabelFlat}>Image</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.iconBtnFlat} onPress={handlePickVideo}>
+                    <Ionicons name="videocam-outline" size={26} color={LINK_COLOR} />
+                    <Text style={styles.mediaPickerLabelFlat}>Video</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.flexGrow} />
+                <TouchableOpacity 
+                  style={[styles.postBtnFlat, (!content.trim() || loading) && { opacity: 0.6 }]}
+                  onPress={handleSubmit} 
+                  disabled={loading || !content.trim()}
+                >
+                  {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.postBtnTextFlat}>Post</Text>}
+                </TouchableOpacity>
+              </View>
+              {error ? <Text style={styles.errorFlat}>{error}</Text> : null}
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
@@ -125,6 +161,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 420,
     alignSelf: 'center',
+    marginTop: 32, // Move elements down
   },
   flatHeader: {
     flexDirection: 'row',
@@ -200,18 +237,28 @@ const styles = StyleSheet.create({
     maxHeight: 320,
     alignSelf: 'center',
   },
-  inputFlat: {
+  inputContainerFlat: {
     width: '96%',
+    maxHeight: 120, // About 6 lines of text
     minHeight: 90,
+    alignSelf: 'center',
+    marginBottom: 12,
+    borderRadius: 8,
+    backgroundColor: '#f9fafb',
     borderColor: '#e5e7eb',
     borderWidth: 1,
-    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  inputScrollFlat: {
+    maxHeight: 120,
+    minHeight: 90,
+  },
+  inputFlat: {
+    width: '100%',
     padding: 12,
     fontSize: 16,
     color: '#222',
-    marginBottom: 12,
-    backgroundColor: '#f9fafb',
-    alignSelf: 'center',
+    backgroundColor: 'transparent',
   },
   mediaPickerRowFlat: {
     flexDirection: 'row',
