@@ -48,6 +48,7 @@ export default function App() {
                 <Stack.Screen name="AdsManagementScreen" component={require('./screens/AdsManagementScreen').default} options={{ title: 'Ad Management' }} />
                 <Stack.Screen name="AdCreationScreen" component={require('./screens/AdCreationScreen').default} options={{ title: 'Create Ad' }} />
                 <Stack.Screen name="Settings" component={require('./screens/SettingsScreen').default} options={{ title: 'Settings', headerShown: true }} />
+                <Stack.Screen name="UpdateProfileScreen" component={require('./screens/UpdateProfileScreen').default} options={{ title: 'Update Profile' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>

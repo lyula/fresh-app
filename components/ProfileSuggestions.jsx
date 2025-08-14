@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getProfileSuggestions as fetchProfileSuggestions } from '../utils/api';
 import { View, Text, FlatList, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import BlueBadge from './BlueBadge';
+// ...existing code...
 import { useNavigation } from '@react-navigation/native';
 
 function getProfileImage(user) {
@@ -133,7 +133,7 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
             <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6, justifyContent: 'center' }}>
               <Text style={styles.name} numberOfLines={1}>{item.username}</Text>
               {item.verified && (
-                <BlueBadge size={16} style={{ marginLeft: 4, marginBottom: -2 }} />
+                <Image source={require('../assets/blue-badge.png')} style={{ width: 16, height: 16, marginLeft: 4, marginBottom: -2 }} />
               )}
             </View>
             {item.commonFollower && item.commonFollower.username ? (

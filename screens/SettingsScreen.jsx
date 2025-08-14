@@ -1,13 +1,16 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// ...existing code...
 
 export default function SettingsScreen() {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Account</Text>
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('UpdateProfileScreen')}>
           <MaterialCommunityIcons name="account-edit" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Edit Profile</Text>
         </TouchableOpacity>
@@ -16,7 +19,7 @@ export default function SettingsScreen() {
           <Text style={styles.itemText}>Change Password</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.item}>
-          <MaterialCommunityIcons name="badge-account" size={22} color="#4F8EF7" style={styles.icon} />
+          <Image source={require('../assets/blue-badge.png')} style={[styles.icon, { width: 22, height: 22 }]} />
           <Text style={styles.itemText}>Verified Badge</Text>
         </TouchableOpacity>
         <Text style={styles.sectionTitle}>Preferences</Text>
