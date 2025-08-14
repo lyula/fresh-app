@@ -151,7 +151,7 @@ export default function Sidebar() {
     { label: 'Inbox', icon: <Feather name="inbox" size={24} color={GOLD} />, route: 'Inbox' },
     { label: 'Ads Service', icon: <MaterialCommunityIcons name="storefront-outline" size={24} color={GOLD} />, route: 'AdsService' },
     { label: 'Signal Rooms', icon: <MaterialCommunityIcons name="bullhorn" size={24} color={GOLD} />, route: 'SignalRooms' },
-    { label: 'Payments', icon: <FontAwesome5 name="money-check-alt" size={20} color={GOLD} />, route: 'Payments' },
+  { label: 'Payments', icon: <FontAwesome5 name="money-check-alt" size={20} color={GOLD} />, route: 'PaymentsScreen' },
     { label: 'Settings', icon: <Feather name="settings" size={24} color={GOLD} />, route: 'Settings' },
   ];
 
