@@ -61,21 +61,24 @@ export default function AdCreationScreen() {
         setRatesLoading(false);
       }
     }
+    async function detectCountry() {
+      try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        if (data.country_name) setUserCountry(data.country_name);
+      } catch (e) {
+        setUserCountry("United States");
+      }
+    }
     fetchRates();
+    detectCountry();
   }, []);
 
   // Calculation logic
-  const calculatePayment = () => {
-    if (!targetUserbase) return 0;
-    const targetOption = TARGET_USERBASE_OPTIONS.find(option => option.value === targetUserbase);
-    const audienceSize = targetOption ? Number(targetOption.value) : 1000;
-    const estimatedViews = audienceSize * duration;
-    return (estimatedViews / 1000) * FINANCE_CPM_USD;
-  };
-  const payment = calculatePayment();
   const targetOption = TARGET_USERBASE_OPTIONS.find(option => option.value === targetUserbase);
   const audienceSize = targetOption ? Number(targetOption.value) : 0;
-  const estimatedViews = audienceSize * duration;
+  const estimatedViews = audienceSize * (duration > 0 ? duration : 1);
+  const payment = (estimatedViews / 1000) * FINANCE_CPM_USD;
 
   // Media picker
   async function pickMedia(type) {
@@ -261,12 +264,20 @@ export default function AdCreationScreen() {
         {/* Payment Calculation */}
         <View style={styles.paymentBox}>
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
-            <Text style={styles.label}>Total Payment ({currencyMode === 'local' ? getUserCurrency(userCountry).code : 'USD'})</Text>
-            <TouchableOpacity onPress={() => setCurrencyMode(currencyMode === 'local' ? 'usd' : 'local')} style={styles.toggleBtn} disabled={ratesLoading}>
-              <Text style={styles.toggleText}>{currencyMode === 'local' ? 'Show in USD' : `Show in ${getUserCurrency(userCountry).code}`}</Text>
+            <Text style={styles.label}>Total Payment</Text>
+            <TouchableOpacity onPress={() => setCurrencyMode(currencyMode === 'usd' ? 'local' : 'usd')} style={styles.toggleBtn} disabled={ratesLoading}>
+              <Text style={styles.toggleText}>{currencyMode === 'usd' ? `Show in ${getUserCurrency(userCountry).code}` : 'Show in USD'}</Text>
             </TouchableOpacity>
           </View>
-          <TextInput style={styles.input} value={ratesLoading ? 'Loading...' : formatCurrency(payment, currencyMode, userCountry, exchangeRates)} editable={false} />
+          <TextInput
+            style={styles.input}
+            value={ratesLoading
+              ? 'Loading...'
+              : currencyMode === 'usd'
+                ? `$${payment.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                : `${getUserCurrency(userCountry).symbol}${convertFromUSD(payment, userCountry, exchangeRates).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+            editable={false}
+          />
           <Text style={styles.paymentDesc}>CPM-based pricing: ${FINANCE_CPM_USD.toFixed(2)} per 1,000 views. Estimated views: {estimatedViews.toLocaleString()}. Price calculation: (Estimated Views / 1,000) × CPM.</Text>
         </View>
         {/* Submit */}
