@@ -145,14 +145,14 @@ export default function Sidebar() {
   const { visible, closeSidebar, handleNavigate } = useSidebar();
   const { user: profile, loadingUser: loading, setUser } = useUser();
   const dashboardLinks = [
-    { label: 'Dashboard', icon: <MaterialCommunityIcons name="view-dashboard-outline" size={24} color={GOLD} />, route: 'Dashboard' },
-    { label: 'Analytics', icon: <MaterialCommunityIcons name="chart-bar" size={24} color={GOLD} />, route: 'Analytics' },
-    { label: 'Vibe', icon: <MaterialCommunityIcons name="account-group" size={24} color={GOLD} />, route: 'Vibe' },
-    { label: 'Inbox', icon: <Feather name="inbox" size={24} color={GOLD} />, route: 'Inbox' },
-    { label: 'Ads Service', icon: <MaterialCommunityIcons name="storefront-outline" size={24} color={GOLD} />, route: 'AdsService' },
-    { label: 'Signal Rooms', icon: <MaterialCommunityIcons name="bullhorn" size={24} color={GOLD} />, route: 'SignalRooms' },
+  { label: 'Dashboard', icon: <MaterialCommunityIcons name="view-dashboard-outline" size={24} color={GOLD} />, route: 'Dashboard' },
+  { label: 'Analytics', icon: <MaterialCommunityIcons name="chart-bar" size={24} color={GOLD} />, route: 'Analytics' },
+  { label: 'Vibe', icon: <MaterialCommunityIcons name="account-group" size={24} color={GOLD} />, route: 'Vibe' },
+  { label: 'Inbox', icon: <Feather name="inbox" size={24} color={GOLD} />, route: 'Inbox' },
+  { label: 'Ads Service', icon: <MaterialCommunityIcons name="storefront-outline" size={24} color={GOLD} />, route: 'AdsManagementScreen' },
+  { label: 'Signal Rooms', icon: <MaterialCommunityIcons name="bullhorn" size={24} color={GOLD} />, route: 'SignalRooms' },
   { label: 'Payments', icon: <FontAwesome5 name="money-check-alt" size={20} color={GOLD} />, route: 'PaymentsScreen' },
-    { label: 'Settings', icon: <Feather name="settings" size={24} color={GOLD} />, route: 'Settings' },
+  { label: 'Settings', icon: <Feather name="settings" size={24} color={GOLD} />, route: 'Settings' },
   ];
 
   const screenWidth = Dimensions.get('window').width;

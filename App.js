@@ -37,14 +37,15 @@ export default function App() {
                 <Stack.Screen name="Register" component={RegisterScreen} options={{ title: 'Register' }} />
                 <Stack.Screen name="Terms" component={TermsScreen} options={{ title: 'Terms & Conditions' }} />
                 <Stack.Screen name="PostsFeed" component={require('./screens/PostsFeedScreen').default} options={{ title: 'Feed', headerShown: false }} />
-                  <Stack.Screen name="CreatePost" component={require('./screens/CreatePostScreen').default} options={{ title: 'Create Post' }} />
-                  <Stack.Screen name="MessagesScreen" component={require('./screens/MessagesScreen').default} options={{ title: 'Messages', headerShown: false }} />
-                  <Stack.Screen name="NotificationsScreen" component={require('./screens/NotificationsScreen').default} options={{ title: 'Notifications', headerShown: false }} />
-                  <Stack.Screen name="ChatScreen" component={require('./screens/ChatScreen').default} options={{ title: 'Chat', headerShown: false }} />
-                  <Stack.Screen name="PublicProfileScreen" component={require('./screens/PublicProfileScreen').default} options={{ title: 'Profile', headerShown: false }} />
-                  <Stack.Screen name="AllProfileSuggestions" component={require('./screens/AllProfileSuggestionsScreen').default} options={{ title: 'All Suggestions' }} />
-                  <Stack.Screen name="PaymentsScreen" component={require('./screens/PaymentsScreen').default} options={{ title: 'Payments' }} />
-                  <Stack.Screen name="PaymentsDetailScreen" component={require('./screens/PaymentsDetailScreen').default} options={{ title: 'Payment Details' }} />
+                <Stack.Screen name="CreatePost" component={require('./screens/CreatePostScreen').default} options={{ title: 'Create Post' }} />
+                <Stack.Screen name="MessagesScreen" component={require('./screens/MessagesScreen').default} options={{ title: 'Messages', headerShown: false }} />
+                <Stack.Screen name="NotificationsScreen" component={require('./screens/NotificationsScreen').default} options={{ title: 'Notifications', headerShown: false }} />
+                <Stack.Screen name="ChatScreen" component={require('./screens/ChatScreen').default} options={{ title: 'Chat', headerShown: false }} />
+                <Stack.Screen name="PublicProfileScreen" component={require('./screens/PublicProfileScreen').default} options={{ title: 'Profile', headerShown: false }} />
+                <Stack.Screen name="AllProfileSuggestions" component={require('./screens/AllProfileSuggestionsScreen').default} options={{ title: 'All Suggestions' }} />
+                <Stack.Screen name="PaymentsScreen" component={require('./screens/PaymentsScreen').default} options={{ title: 'Payments' }} />
+                <Stack.Screen name="PaymentsDetailScreen" component={require('./screens/PaymentsDetailScreen').default} options={{ title: 'Payment Details' }} />
+                <Stack.Screen name="AdsManagementScreen" component={require('./screens/AdsManagementScreen').default} options={{ title: 'Ad Management' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>
