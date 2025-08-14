@@ -17,10 +17,6 @@ export default function SettingsScreen() {
           <Text style={styles.itemText}>Edit Profile</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.item}>
-          <MaterialCommunityIcons name="lock-reset" size={22} color="#4F8EF7" style={styles.icon} />
-          <Text style={styles.itemText}>Change Password</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.item}>
           <Image source={require('../assets/blue-badge.png')} style={[styles.icon, { width: 22, height: 22 }]} />
           <Text style={styles.itemText}>Verified Badge</Text>
         </TouchableOpacity>
