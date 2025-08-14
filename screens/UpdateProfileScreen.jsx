@@ -8,7 +8,7 @@ import { updateProfile as updateProfileApi, uploadToCloudinary } from '../utils/
 
 export default function UpdateProfileScreen({ route }) {
   const navigation = useNavigation();
-  const { user: profile } = useUser();
+  const { user: profile, refreshUser } = useUser();
   // You can get user data from route.params if passed
   const [form, setForm] = useState({
     username: '',
@@ -79,9 +79,7 @@ export default function UpdateProfileScreen({ route }) {
         setMessage('Profile updated successfully!');
         // Force refresh user context so all components get the latest image
         try {
-          const { getProfile } = require('../utils/user');
-          const freshProfile = await getProfile();
-          setUser(freshProfile);
+          await refreshUser();
         } catch (err) {
           console.warn('Failed to refresh profile after update:', err);
         }

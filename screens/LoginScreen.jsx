@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useUser } from '../context/user';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, SafeAreaView, ActivityIndicator, StatusBar } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { styled } from 'dripsy';
@@ -67,6 +68,7 @@ async function loginUser({ email, password }) {
 
 export default function LoginScreen() {
   const navigation = useNavigation();
+  const { refreshUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -83,12 +85,15 @@ export default function LoginScreen() {
     try {
       console.log('[Login] Attempting login for:', email);
       const result = await loginUser({ email, password });
-      setLoading(false);
       console.log('[Login] Result:', result);
       if (result.token) {
         await AsyncStorage.setItem('token', result.token);
-  navigation.replace('PostsFeed');
+        setLoading(false);
+        navigation.replace('PostsFeed');
+        // Refresh user context after navigation for instant update
+        setTimeout(() => { refreshUser(); }, 0);
       } else {
+        setLoading(false);
         setError(result.message || 'Login failed.');
         console.warn('[Login] Login failed:', result);
       }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useUser } from '../context/user';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -6,6 +7,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
+  const { logout } = useUser();
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
@@ -40,7 +42,10 @@ export default function SettingsScreen() {
           <MaterialCommunityIcons name="email" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Contact Us</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.item, styles.logout]}>
+        <TouchableOpacity style={[styles.item, styles.logout]} onPress={async () => {
+          await logout();
+          navigation.reset({ index: 0, routes: [{ name: 'LoginScreen' }] });
+        }}>
           <MaterialCommunityIcons name="logout" size={22} color="#e74c3c" style={styles.icon} />
           <Text style={[styles.itemText, styles.logoutText]}>Log Out</Text>
         </TouchableOpacity>
