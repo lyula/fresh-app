@@ -10,6 +10,7 @@ import BottomHeader from '../components/BottomHeader';
 import { useNavigation } from '@react-navigation/native';
 import { fetchPosts } from '../utils/api';
 import { fetchAds } from '../utils/ads';
+import PostSkeleton from '../components/PostSkeleton';
 
 // This screen expects posts and ads to be provided as props or from a parent context
 // It does not manage pagination or fetching logic internally
@@ -212,9 +213,10 @@ function PostsFeedScreen() {
       </Animated.View>
       {/* Feed content starts below both headers */}
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 120 }}>
-          <ActivityIndicator size="large" color="#a99d6b" />
-          <Text style={{ marginTop: 12, color: '#888' }}>Loading feed...</Text>
+        <View style={{ flex: 1, marginTop: 24 }}>
+          {[...Array(5)].map((_, idx) => (
+            <PostSkeleton key={idx} />
+          ))}
         </View>
       ) : error ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 120 }}>
