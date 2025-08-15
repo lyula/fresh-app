@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/user';
 import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
 import { getPostById, getPostComments, getTotalCommentCount, likePost } from '../utils/api';
@@ -8,6 +9,7 @@ const VERIFIED_BADGE_URI = 'https://zack-lyula-portfolio.vercel.app/images/blue-
 const VERIFIED_BADGE_STYLE = { width: 18, height: 18, marginLeft: 1 };
 
 export default function PostComments({ postId, visible, onClose }) {
+  const navigation = useNavigation();
   const { userId } = useUser();
   const [comments, setComments] = useState([]);
   // Helper to check if current user liked a comment/reply
@@ -76,7 +78,13 @@ export default function PostComments({ postId, visible, onClose }) {
     const liked = isLikedByUser(reply.likes);
     return (
       <View style={styles.replyRow} key={reply._id}>
-        <Image source={{ uri: imgUri }} style={styles.replyAvatar} />
+        <TouchableOpacity onPress={() => {
+          if (reply.author?.username && navigation) {
+            navigation.navigate('PublicProfileScreen', { username: reply.author.username });
+          }
+        }}>
+          <Image source={{ uri: imgUri }} style={styles.replyAvatar} />
+        </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => {
@@ -139,7 +147,13 @@ export default function PostComments({ postId, visible, onClose }) {
     const liked = isLikedByUser(item.likes);
     return (
       <View style={styles.commentRow}>
-        <Image source={{ uri: imgUri }} style={styles.avatar} />
+        <TouchableOpacity onPress={() => {
+          if (item.author?.username && navigation) {
+            navigation.navigate('PublicProfileScreen', { username: item.author.username });
+          }
+        }}>
+          <Image source={{ uri: imgUri }} style={styles.avatar} />
+        </TouchableOpacity>
         <View style={styles.commentContentFlat}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity onPress={() => {
