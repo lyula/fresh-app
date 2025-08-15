@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useUser } from '../context/user';
 import PostLikesModal from './PostLikesModal';
 import PostComments from './PostComments';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
@@ -38,24 +39,42 @@ function formatPostDate(dateString) {
   const years = Math.floor(diff / 31536000);
   return `${years}y ago`;
 }
-import { incrementPostShareCount } from '../utils/api';
+import { incrementPostShareCount, editPost, deletePost } from '../utils/api';
 
-export default function PostCard({ post, navigation }) {
+export default function PostCard({ post, navigation, onPostDeleted, onPostEdited }) {
+  const { userId } = useUser();
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
   const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
   const [menuVisible, setMenuVisible] = useState(false);
-  const handleEdit = () => {
+  const handleEdit = async () => {
     setMenuVisible(false);
-    // TODO: Implement edit logic
-    alert('Edit post');
+    // Simple prompt for new content (replace with modal for production)
+    const newContent = prompt('Edit post content:', post.content);
+    if (newContent && newContent !== post.content) {
+      try {
+        const res = await editPost(post._id || post.id, newContent, post.image);
+        if (onPostEdited) onPostEdited(res);
+        alert('Post updated!');
+      } catch (err) {
+        alert('Failed to edit post');
+      }
+    }
   };
-  const handleDelete = () => {
+  const handleDelete = async () => {
     setMenuVisible(false);
-    // TODO: Implement delete logic
-    alert('Delete post');
+    if (window.confirm('Are you sure you want to delete this post?')) {
+      try {
+        await deletePost(post._id || post.id);
+        if (onPostDeleted) onPostDeleted(post._id || post.id);
+        alert('Post deleted!');
+      } catch (err) {
+        alert('Failed to delete post');
+      }
+    }
   };
   const author = post.author || post.user || {};
+  const authorId = author._id || author.id;
   const avatar = author.profileImage || author.avatar || (author.profile && author.profile.profileImage) || null;
   let content = '';
   if (typeof post.content === 'string') {
@@ -149,9 +168,12 @@ export default function PostCard({ post, navigation }) {
               <Text style={[styles.time, { marginLeft: 12 }]}>{formatPostDate(post.createdAt)}</Text>
             </View>
           </View>
-          <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginLeft: 8, padding: 4 }}>
-            <MaterialIcons name="more-vert" size={22} color="#888" />
-          </TouchableOpacity>
+          {/* Only show menu button if current user is the author */}
+          {userId === authorId && (
+            <TouchableOpacity onPress={() => setMenuVisible(true)} style={{ marginLeft: 8, padding: 4 }}>
+              <MaterialIcons name="more-vert" size={22} color="#888" />
+            </TouchableOpacity>
+          )}
         </View>
         <Text style={styles.content}>{content}</Text>
         {post.image ? (
@@ -215,25 +237,28 @@ export default function PostCard({ post, navigation }) {
       />
       <View style={styles.hr} />
       {/* Menu modal */}
-      <Modal
-        visible={menuVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setMenuVisible(false)}
-      >
-        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPressOut={() => setMenuVisible(false)}>
-          <View style={styles.menuModal}>
-            <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
-              <MaterialIcons name="edit" size={20} color="#007AFF" />
-              <Text style={styles.menuText}>Edit Post</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-              <MaterialIcons name="delete" size={20} color="#FF3B30" />
-              <Text style={[styles.menuText, { color: '#FF3B30' }]}>Delete Post</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      {/* Only show menu modal if current user is the author */}
+      {userId === authorId && (
+        <Modal
+          visible={menuVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setMenuVisible(false)}
+        >
+          <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPressOut={() => setMenuVisible(false)}>
+            <View style={styles.menuModal}>
+              <TouchableOpacity style={styles.menuItem} onPress={handleEdit}>
+                <MaterialIcons name="edit" size={20} color="#007AFF" />
+                <Text style={styles.menuText}>Edit Post</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+                <MaterialIcons name="delete" size={20} color="#FF3B30" />
+                <Text style={[styles.menuText, { color: '#FF3B30' }]}>Delete Post</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 }
