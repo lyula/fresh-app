@@ -251,6 +251,72 @@ export default function PublicProfileScreen({ route }) {
             </View>
           )
         )}
+        {activeTab === 'Followers' && (
+          followers.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No followers yet.</Text>
+          ) : (
+            <View style={{ width: '100%', alignItems: 'center', marginTop: 8 }}>
+              {followers.slice(0, 70).map(follower => (
+                <TouchableOpacity
+                  key={follower._id || follower.id || follower.username}
+                  style={{
+                    width: '85%',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: 24,
+                    paddingVertical: 12,
+                    paddingHorizontal: 18,
+                    marginBottom: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => navigation.navigate('PublicProfileScreen', { username: follower.username })}
+                >
+                  <Image
+                    source={{ uri: follower.profileImage || follower.avatar || (follower.profile && (follower.profile.profileImage || follower.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                    style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
+                  />
+                  <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{follower.username}</Text>
+                  {follower.verified && (
+                    <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )
+        )}
+        {activeTab === 'Following' && (
+          following.length === 0 ? (
+            <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Not following anyone yet.</Text>
+          ) : (
+            <View style={{ width: '100%', alignItems: 'center', marginTop: 8 }}>
+              {following.slice(0, 70).map(user => (
+                <TouchableOpacity
+                  key={user._id || user.id || user.username}
+                  style={{
+                    width: '85%',
+                    backgroundColor: '#f3f4f6',
+                    borderRadius: 24,
+                    paddingVertical: 12,
+                    paddingHorizontal: 18,
+                    marginBottom: 10,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                  onPress={() => navigation.navigate('PublicProfileScreen', { username: user.username })}
+                >
+                  <Image
+                    source={{ uri: user.profileImage || user.avatar || (user.profile && (user.profile.profileImage || user.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                    style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
+                  />
+                  <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{user.username}</Text>
+                  {user.verified && (
+                    <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          )
+        )}
       </ScrollView>
       {showBottomHeader && (
         <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, zIndex: 30 }}>
