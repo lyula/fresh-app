@@ -15,103 +15,107 @@ const GOLD = '#a99d6b';
 export default function CreatePostScreen({ navigation, onPostCreated, visible = true, onClose }) {
   const { userId, user } = useUser();
   const [content, setContent] = useState('');
-  const [images, setImages] = useState([]); // Array of image URIs
-  const [videos, setVideos] = useState([]); // Array of video URIs
+  // Store both local and uploaded URIs for instant preview
+  const [images, setImages] = useState([]); // Array of { uri, uploadedUri }
+  const [videos, setVideos] = useState([]); // Array of { uri, uploadedUri }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Example image picker for multiple images
+  // Improved image picker for multiple images
   const handlePickImage = async () => {
-  console.log('Image picker icon pressed');
-  console.log('Requesting media library permissions for images...');
-  console.log('Permission result:', permission);
-  console.log('Launching image picker...');
-  console.log('Image picker result:', result);
     if (Platform.OS === 'web') {
       Alert.alert('Not supported', 'Media picking is not supported on web.');
       return;
     }
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log('Permission result:', permission);
-    if (!permission || !permission.granted) {
-      Alert.alert('Permission required', 'Please allow access to your media library to select images.');
-      return;
-    }
     try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission?.granted) {
+        Alert.alert('Permission required', 'Please allow access to your media library to select images.');
+        return;
+      }
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.IMAGE,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsMultipleSelection: true,
         quality: 0.8,
       });
-      // Fallback: If result is undefined or no assets, try single selection
-      if (!result || typeof result !== 'object' || !('assets' in result)) {
+      // Fallback for single selection if multiple not supported
+      if (!result?.assets) {
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaType.IMAGE,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           quality: 0.8,
         });
       }
-      console.log('Image picker result:', result);
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
+        // Show local previews instantly
+        const newImages = result.assets.map(asset => ({ uri: asset.uri, uploadedUri: null }));
+        setImages(prev => [...prev, ...newImages]);
         setLoading(true);
         try {
-          const uploaded = await Promise.all(result.assets.map(async (asset) => {
+          // Upload and update preview
+          const uploaded = await Promise.all(result.assets.map(async (asset, idx) => {
             const url = await uploadToCloudinary(asset.uri, 'image');
-            return url;
+            return { idx, url };
           }));
-          setImages([...images, ...uploaded]);
+          setImages(prev => prev.map((img, i) => {
+            // Only update newly added images
+            const found = uploaded.find(u => u.idx === i - (prev.length - newImages.length));
+            return found ? { ...img, uploadedUri: found.url } : img;
+          }));
         } catch (err) {
           setError('Failed to upload image(s)');
         }
         setLoading(false);
-      } else {
-        console.log('No image selected or picker canceled.');
       }
     } catch (err) {
-      console.log('Error launching image picker:', err);
       setError('Could not open image picker.');
     }
   };
-  // Example video picker for multiple videos
+  // Improved video picker for multiple videos
   const handlePickVideo = async () => {
-  console.log('Video picker icon pressed');
-  console.log('Requesting media library permissions for videos...');
-  console.log('Permission result:', permission);
-  console.log('Launching video picker...');
-  console.log('Video picker result:', result);
     if (Platform.OS === 'web') {
       Alert.alert('Not supported', 'Media picking is not supported on web.');
       return;
     }
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log('Permission result:', permission);
-    if (!permission || !permission.granted) {
-      Alert.alert('Permission required', 'Please allow access to your media library to select videos.');
-      return;
-    }
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.VIDEO,
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission?.granted) {
+        Alert.alert('Permission required', 'Please allow access to your media library to select videos.');
+        return;
+      }
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         allowsMultipleSelection: true,
         quality: 0.8,
       });
-      console.log('Video picker result:', result);
+      // Fallback for single selection if multiple not supported
+      if (!result?.assets) {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+          quality: 0.8,
+        });
+      }
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
+        // Show local previews instantly
+        const newVideos = result.assets.map(asset => ({ uri: asset.uri, uploadedUri: null }));
+        setVideos(prev => [...prev, ...newVideos]);
         setLoading(true);
         try {
-          const uploaded = await Promise.all(result.assets.map(async (asset) => {
+          // Upload and update preview
+          const uploaded = await Promise.all(result.assets.map(async (asset, idx) => {
             const url = await uploadToCloudinary(asset.uri, 'video');
-            return url;
+            return { idx, url };
           }));
-          setVideos([...videos, ...uploaded]);
+          setVideos(prev => prev.map((vid, i) => {
+            // Only update newly added videos
+            const found = uploaded.find(u => u.idx === i - (prev.length - newVideos.length));
+            return found ? { ...vid, uploadedUri: found.url } : vid;
+          }));
         } catch (err) {
           setError('Failed to upload video(s)');
         }
         setLoading(false);
-      } else {
-        console.log('No video selected or picker canceled.');
       }
     } catch (err) {
-      console.log('Error launching video picker:', err);
       setError('Could not open video picker.');
     }
   };
@@ -125,7 +129,11 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
     setError('');
     try {
       // Send post to backend
-      const newPost = await createPost({ content, images, videos });
+      const newPost = await createPost({
+        content,
+        images: images.map(img => img.uploadedUri || img.uri),
+        videos: videos.map(vid => vid.uploadedUri || vid.uri)
+      });
       setContent('');
       setImages([]);
       setVideos([]);
@@ -165,12 +173,15 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                   <Text style={[styles.flatCancel, styles.cancelRightPad]}>Cancel</Text>
                 </TouchableOpacity>
               </View>
-              {/* ...existing code... */}
               {/* Preview selected images */}
               {images.length > 0 && (
                 <ScrollView horizontal style={{ marginBottom: 12 }}>
                   {images.map((img, idx) => (
-                    <Image key={idx} source={{ uri: img }} style={styles.mediaPreviewFlat} />
+                    <Image
+                      key={idx}
+                      source={{ uri: img.uploadedUri || img.uri }}
+                      style={styles.mediaPreviewFlat}
+                    />
                   ))}
                 </ScrollView>
               )}
@@ -180,7 +191,7 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                   {videos.map((vid, idx) => (
                     <Video
                       key={idx}
-                      source={{ uri: vid }}
+                      source={{ uri: vid.uploadedUri || vid.uri }}
                       style={styles.mediaPreviewFlat}
                       useNativeControls
                       resizeMode="contain"
