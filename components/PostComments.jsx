@@ -79,7 +79,13 @@ export default function PostComments({ postId, visible, onClose }) {
         <Image source={{ uri: imgUri }} style={styles.replyAvatar} />
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.replyUsername}>{reply.author?.username || reply.author?.name || 'User'}</Text>
+            <TouchableOpacity onPress={() => {
+              if (reply.author?.username && navigation) {
+                navigation.navigate('PublicProfileScreen', { username: reply.author.username });
+              }
+            }}>
+              <Text style={styles.replyUsername}>{reply.author?.username || reply.author?.name || 'User'}</Text>
+            </TouchableOpacity>
             {isVerified && (
               <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
             )}
@@ -136,7 +142,13 @@ export default function PostComments({ postId, visible, onClose }) {
         <Image source={{ uri: imgUri }} style={styles.avatar} />
         <View style={styles.commentContentFlat}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Text style={styles.username}>{item.author?.username || item.author?.name || 'User'}</Text>
+            <TouchableOpacity onPress={() => {
+              if (item.author?.username && navigation) {
+                navigation.navigate('PublicProfileScreen', { username: item.author.username });
+              }
+            }}>
+              <Text style={styles.username}>{item.author?.username || item.author?.name || 'User'}</Text>
+            </TouchableOpacity>
             {isVerified && (
               <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
             )}

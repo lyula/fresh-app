@@ -172,7 +172,7 @@ function PostsFeedScreen() {
     const shouldShowSuggestions = suggestionIntervals.includes(index + 1);
     return (
       <>
-        <PostCard post={item} />
+  <PostCard post={item} navigation={navigation} />
         {shouldShowSuggestions && (
           <ProfileSuggestions currentUser={user} />
         )}

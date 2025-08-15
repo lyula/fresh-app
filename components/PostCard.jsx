@@ -40,7 +40,7 @@ function formatPostDate(dateString) {
 }
 import { incrementPostShareCount } from '../utils/api';
 
-export default function PostCard({ post }) {
+export default function PostCard({ post, navigation }) {
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
   const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
@@ -114,7 +114,16 @@ export default function PostCard({ post }) {
           )}
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
             <View style={styles.usernameRow}>
-              <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
+              <TouchableOpacity onPress={() => {
+                if (author.username) {
+                  // Use navigation from props or context
+                  if (typeof navigation !== 'undefined') {
+                    navigation.navigate('PublicProfileScreen', { username: author.username });
+                  }
+                }
+              }}>
+                <Text style={styles.username}>{author.name || author.username || 'Unknown'}</Text>
+              </TouchableOpacity>
               {author.verified && (
                 <Image source={require('../assets/blue-badge.png')} style={{ width: 20, height: 20, marginRight: 4 }} />
               )}
