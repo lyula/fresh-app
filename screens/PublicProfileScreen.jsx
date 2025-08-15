@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList, TextInput } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import PostCard from '../components/PostCard';
 import BottomHeader from '../components/BottomHeader';
@@ -9,6 +9,7 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function PublicProfileScreen({ route }) {
+  const [searchTerm, setSearchTerm] = useState('');
   const scrollRef = React.useRef(null);
   const [showBottomHeader, setShowBottomHeader] = useState(false);
 
@@ -256,29 +257,47 @@ export default function PublicProfileScreen({ route }) {
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No followers yet.</Text>
           ) : (
             <View style={{ width: '100%', marginTop: 8 }}>
-              {followers.slice(0, 70).map(follower => (
-                <TouchableOpacity
-                  key={follower._id || follower.id || follower.username}
+              <View style={{ paddingHorizontal: 18, marginBottom: 8 }}>
+                <TextInput
+                  placeholder="Search followers..."
+                  value={searchTerm}
+                  onChangeText={setSearchTerm}
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    paddingLeft: 18,
-                    marginLeft: 12,
-                    marginBottom: 6,
+                    height: 38,
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    backgroundColor: '#fafafa',
                   }}
-                  onPress={() => navigation.navigate('PublicProfileScreen', { username: follower.username })}
-                >
-                  <Image
-                    source={{ uri: follower.profileImage || follower.avatar || (follower.profile && (follower.profile.profileImage || follower.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-                    style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
-                  />
-                  <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{follower.username}</Text>
-                  {follower.verified && (
-                    <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
-                  )}
-                </TouchableOpacity>
-              ))}
+                />
+              </View>
+              {followers
+                .filter(follower => follower.username.toLowerCase().includes(searchTerm.toLowerCase()))
+                .slice(0, 70)
+                .map(follower => (
+                  <TouchableOpacity
+                    key={follower._id || follower.id || follower.username}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 8,
+                      paddingLeft: 18,
+                      marginLeft: 12,
+                      marginBottom: 6,
+                    }}
+                    onPress={() => navigation.navigate('PublicProfileScreen', { username: follower.username })}
+                  >
+                    <Image
+                      source={{ uri: follower.profileImage || follower.avatar || (follower.profile && (follower.profile.profileImage || follower.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                      style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
+                    />
+                    <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{follower.username}</Text>
+                    {follower.verified && (
+                      <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
+                    )}
+                  </TouchableOpacity>
+                ))}
             </View>
           )
         )}
@@ -287,29 +306,47 @@ export default function PublicProfileScreen({ route }) {
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Not following anyone yet.</Text>
           ) : (
             <View style={{ width: '100%', marginTop: 8 }}>
-              {following.slice(0, 70).map(user => (
-                <TouchableOpacity
-                  key={user._id || user.id || user.username}
+              <View style={{ paddingHorizontal: 18, marginBottom: 8 }}>
+                <TextInput
+                  placeholder="Search following..."
+                  value={searchTerm}
+                  onChangeText={setSearchTerm}
                   style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    paddingVertical: 8,
-                    paddingLeft: 18,
-                    marginLeft: 12,
-                    marginBottom: 6,
+                    height: 38,
+                    borderColor: '#e5e7eb',
+                    borderWidth: 1,
+                    borderRadius: 10,
+                    paddingHorizontal: 12,
+                    backgroundColor: '#fafafa',
                   }}
-                  onPress={() => navigation.navigate('PublicProfileScreen', { username: user.username })}
-                >
-                  <Image
-                    source={{ uri: user.profileImage || user.avatar || (user.profile && (user.profile.profileImage || user.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
-                    style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
-                  />
-                  <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{user.username}</Text>
-                  {user.verified && (
-                    <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
-                  )}
-                </TouchableOpacity>
-              ))}
+                />
+              </View>
+              {following
+                .filter(user => user.username.toLowerCase().includes(searchTerm.toLowerCase()))
+                .slice(0, 70)
+                .map(user => (
+                  <TouchableOpacity
+                    key={user._id || user.id || user.username}
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingVertical: 8,
+                      paddingLeft: 18,
+                      marginLeft: 12,
+                      marginBottom: 6,
+                    }}
+                    onPress={() => navigation.navigate('PublicProfileScreen', { username: user.username })}
+                  >
+                    <Image
+                      source={{ uri: user.profileImage || user.avatar || (user.profile && (user.profile.profileImage || user.profile.avatar)) || 'https://cdn-icons-png.flaticon.com/512/149/149071.png' }}
+                      style={{ width: 38, height: 38, borderRadius: 19, marginRight: 12, backgroundColor: '#e5e7eb' }}
+                    />
+                    <Text style={{ fontWeight: 'bold', fontSize: 16, color: '#1E3A8A' }}>{user.username}</Text>
+                    {user.verified && (
+                      <Image source={require('../assets/blue-badge.png')} style={{ width: 18, height: 18, marginLeft: 6 }} />
+                    )}
+                  </TouchableOpacity>
+                ))}
             </View>
           )
         )}
