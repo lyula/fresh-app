@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { createPost } from '../utils/createPost';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
-import { uploadToCloudinary } from '../utils/cloudinaryUpload';
+import { uploadToCloudinary, deleteFromCloudinary } from '../utils/cloudinaryUpload';
 import { Video } from 'expo-av';
 import { useUser } from '../context/user';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,10 +16,11 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
   const { userId, user } = useUser();
   const [content, setContent] = useState('');
   // Store both local and uploaded URIs for instant preview
-  const [images, setImages] = useState([]); // Array of { uri, uploadedUri }
-  const [videos, setVideos] = useState([]); // Array of { uri, uploadedUri }
+  const [images, setImages] = useState([]); // Array of { uri, base64 }
+  const [videos, setVideos] = useState([]); // Array of { uri, base64 }
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [imagePreview, setImagePreview] = useState(null);
 
   // Improved image picker for multiple images
   const handlePickImage = async () => {
@@ -35,36 +36,20 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
       }
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: true,
-        quality: 0.8,
+        allowsMultipleSelection: false,
+        quality: 1,
+        base64: true,
       });
-      // Fallback for single selection if multiple not supported
       if (!result?.assets) {
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          quality: 0.8,
+          quality: 1,
+          base64: true,
         });
       }
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
-        // Show local previews instantly
-        const newImages = result.assets.map(asset => ({ uri: asset.uri, uploadedUri: null }));
-        setImages(prev => [...prev, ...newImages]);
-        setLoading(true);
-        try {
-          // Upload and update preview
-          const uploaded = await Promise.all(result.assets.map(async (asset, idx) => {
-            const url = await uploadToCloudinary(asset.uri, 'image');
-            return { idx, url };
-          }));
-          setImages(prev => prev.map((img, i) => {
-            // Only update newly added images
-            const found = uploaded.find(u => u.idx === i - (prev.length - newImages.length));
-            return found ? { ...img, uploadedUri: found.url } : img;
-          }));
-        } catch (err) {
-          setError('Failed to upload image(s)');
-        }
-        setLoading(false);
+        const newImages = result.assets.map(asset => ({ uri: asset.uri, base64: asset.base64 }));
+        setImages(newImages);
       }
     } catch (err) {
       setError('Could not open image picker.');
@@ -84,55 +69,60 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
       }
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-        allowsMultipleSelection: true,
-        quality: 0.8,
+        allowsMultipleSelection: false,
+        quality: 1,
+        base64: true,
       });
-      // Fallback for single selection if multiple not supported
       if (!result?.assets) {
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.Videos,
-          quality: 0.8,
+          quality: 1,
+          base64: true,
         });
       }
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
-        // Show local previews instantly
-        const newVideos = result.assets.map(asset => ({ uri: asset.uri, uploadedUri: null }));
-        setVideos(prev => [...prev, ...newVideos]);
-        setLoading(true);
-        try {
-          // Upload and update preview
-          const uploaded = await Promise.all(result.assets.map(async (asset, idx) => {
-            const url = await uploadToCloudinary(asset.uri, 'video');
-            return { idx, url };
-          }));
-          setVideos(prev => prev.map((vid, i) => {
-            // Only update newly added videos
-            const found = uploaded.find(u => u.idx === i - (prev.length - newVideos.length));
-            return found ? { ...vid, uploadedUri: found.url } : vid;
-          }));
-        } catch (err) {
-          setError('Failed to upload video(s)');
-        }
-        setLoading(false);
+        const newVideos = result.assets.map(asset => ({ uri: asset.uri, base64: asset.base64 }));
+        setVideos(newVideos);
       }
     } catch (err) {
       setError('Could not open video picker.');
     }
   };
 
+  const pickSingleImage = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      quality: 1,
+      base64: true,
+    });
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setImagePreview('data:image/jpeg;base64,' + result.assets[0].base64);
+    }
+  };
+
   const handleSubmit = async () => {
-    if (!content.trim()) {
-      setError('Post content cannot be empty.');
+    if (!content.trim() && images.length === 0 && videos.length === 0) {
+      setError('Post must have text or media.');
       return;
     }
     setLoading(true);
     setError('');
     try {
+      // Upload images/videos to Cloudinary before creating post
+      const uploadedImages = await Promise.all(images.map(async img => {
+        const url = await uploadToCloudinary(img.uri, 'image');
+        return url;
+      }));
+      const uploadedVideos = await Promise.all(videos.map(async vid => {
+        const url = await uploadToCloudinary(vid.uri, 'video');
+        return url;
+      }));
       // Send post to backend
       const newPost = await createPost({
         content,
-        images: images.map(img => img.uploadedUri || img.uri),
-        videos: videos.map(vid => vid.uploadedUri || vid.uri)
+        images: uploadedImages,
+        videos: uploadedVideos
       });
       setContent('');
       setImages([]);
@@ -145,6 +135,14 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
       setError('Failed to create post.');
     }
     setLoading(false);
+  };
+
+  const handleCancel = () => {
+    setContent('');
+    setImages([]);
+    setVideos([]);
+    if (onClose) onClose();
+    else if (navigation) navigation.goBack();
   };
 
   return (
@@ -169,36 +167,33 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                 />
                 <Text style={styles.usernameFlat}>{user?.username || 'User'}</Text>
                 <View style={styles.flexGrow} />
-                <TouchableOpacity onPress={onClose || (() => navigation && navigation.goBack())}>
+                <TouchableOpacity onPress={handleCancel}>
                   <Text style={[styles.flatCancel, styles.cancelRightPad]}>Cancel</Text>
                 </TouchableOpacity>
               </View>
               {/* Preview selected images */}
-              {images.length > 0 && (
-                <ScrollView horizontal style={{ marginBottom: 12 }}>
-                  {images.map((img, idx) => (
-                    <Image
-                      key={idx}
-                      source={{ uri: img.uploadedUri || img.uri }}
-                      style={styles.mediaPreviewFlat}
-                    />
-                  ))}
-                </ScrollView>
+              {images.length > 0 && images[0].base64 && (
+                <View style={{ position: 'relative', marginBottom: 12 }}>
+                  <Image source={{ uri: 'data:image/jpeg;base64,' + images[0].base64 }} style={styles.mediaPreviewFlat} />
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#fff', borderRadius: 16, padding: 4, elevation: 2 }}
+                    onPress={() => setImages([])}
+                  >
+                    <Ionicons name="close-circle" size={28} color="#e11d48" />
+                  </TouchableOpacity>
+                </View>
               )}
               {/* Preview selected videos */}
-              {videos.length > 0 && (
-                <ScrollView horizontal style={{ marginBottom: 12 }}>
-                  {videos.map((vid, idx) => (
-                    <Video
-                      key={idx}
-                      source={{ uri: vid.uploadedUri || vid.uri }}
-                      style={styles.mediaPreviewFlat}
-                      useNativeControls
-                      resizeMode="contain"
-                      shouldPlay={false}
-                    />
-                  ))}
-                </ScrollView>
+              {videos.length > 0 && videos[0].base64 && (
+                <View style={{ position: 'relative', marginBottom: 12 }}>
+                  <Video source={{ uri: 'data:video/mp4;base64,' + videos[0].base64 }} style={styles.mediaPreviewFlat} useNativeControls resizeMode="contain" shouldPlay={false} />
+                  <TouchableOpacity
+                    style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#fff', borderRadius: 16, padding: 4, elevation: 2 }}
+                    onPress={() => setVideos([])}
+                  >
+                    <Ionicons name="close-circle" size={28} color="#e11d48" />
+                  </TouchableOpacity>
+                </View>
               )}
               <View style={styles.inputContainerFlat}>
                 <ScrollView
@@ -220,7 +215,17 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
               </View>
               <View style={styles.mediaAndPostRow}>
                 <View style={styles.mediaPickerRowFlat}>
-                  <TouchableOpacity style={styles.iconBtnFlat} onPress={handlePickImage}>
+                  <TouchableOpacity style={styles.iconBtnFlat} onPress={async () => {
+                    let result = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                      allowsEditing: false,
+                      quality: 1,
+                      base64: true,
+                    });
+                    if (!result.canceled && result.assets && result.assets.length > 0) {
+                      setImages([{ uri: result.assets[0].uri, base64: result.assets[0].base64 }]);
+                    }
+                  }}>
                     <Ionicons name="image-outline" size={26} color={LINK_COLOR} />
                     <Text style={styles.mediaPickerLabelFlat}>Image</Text>
                   </TouchableOpacity>
@@ -231,9 +236,9 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                 </View>
                 <View style={styles.flexGrow} />
                 <TouchableOpacity 
-                  style={[styles.postBtnFlat, (!content.trim() || loading) && { opacity: 0.6 }]}
+                  style={[styles.postBtnFlat, (!content.trim() && images.length === 0 && videos.length === 0 || loading) && { opacity: 0.6 }]}
                   onPress={handleSubmit} 
-                  disabled={loading || !content.trim()}
+                  disabled={loading || (!content.trim() && images.length === 0 && videos.length === 0)}
                 >
                   {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.postBtnTextFlat}>Post</Text>}
                 </TouchableOpacity>
