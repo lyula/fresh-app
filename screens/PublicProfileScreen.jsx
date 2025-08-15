@@ -266,6 +266,7 @@ export default function PublicProfileScreen({ route }) {
                 scrollRef.current.scrollTo({ y: 0, animated: true });
               }
             }}
+              onSettingsPress={() => navigation.navigate('Settings')}
           />
         </View>
       )}

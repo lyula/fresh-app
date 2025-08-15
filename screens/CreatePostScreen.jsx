@@ -1,6 +1,10 @@
+import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar, KeyboardAvoidingView } from 'react-native';
+import { Platform } from 'react-native';
 import React, { useState } from 'react';
 import { createPost } from '../utils/createPost';
-import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar, KeyboardAvoidingView, Platform } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Alert } from 'react-native';
+import { uploadToCloudinary } from '../utils/cloudinaryUpload';
 import { Video } from 'expo-av';
 import { useUser } from '../context/user';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,16 +22,98 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
 
   // Example image picker for multiple images
   const handlePickImage = async () => {
-    // Replace with your image picker logic (e.g., expo-image-picker)
-    // This is a placeholder for multiple selection
-    // Example: let result = await ImagePicker.launchImageLibraryAsync({ allowsMultipleSelection: true });
-    // if (!result.canceled) setImages([...images, ...result.assets.map(a => a.uri)]);
+  console.log('Image picker icon pressed');
+  console.log('Requesting media library permissions for images...');
+  console.log('Permission result:', permission);
+  console.log('Launching image picker...');
+  console.log('Image picker result:', result);
+    if (Platform.OS === 'web') {
+      Alert.alert('Not supported', 'Media picking is not supported on web.');
+      return;
+    }
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log('Permission result:', permission);
+    if (!permission || !permission.granted) {
+      Alert.alert('Permission required', 'Please allow access to your media library to select images.');
+      return;
+    }
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaType.IMAGE,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+      });
+      // Fallback: If result is undefined or no assets, try single selection
+      if (!result || typeof result !== 'object' || !('assets' in result)) {
+        result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaType.IMAGE,
+          quality: 0.8,
+        });
+      }
+      console.log('Image picker result:', result);
+      if (result && !result.canceled && result.assets && result.assets.length > 0) {
+        setLoading(true);
+        try {
+          const uploaded = await Promise.all(result.assets.map(async (asset) => {
+            const url = await uploadToCloudinary(asset.uri, 'image');
+            return url;
+          }));
+          setImages([...images, ...uploaded]);
+        } catch (err) {
+          setError('Failed to upload image(s)');
+        }
+        setLoading(false);
+      } else {
+        console.log('No image selected or picker canceled.');
+      }
+    } catch (err) {
+      console.log('Error launching image picker:', err);
+      setError('Could not open image picker.');
+    }
   };
   // Example video picker for multiple videos
   const handlePickVideo = async () => {
-    // Replace with your video picker logic (e.g., expo-image-picker)
-    // Example: let result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'Videos', allowsMultipleSelection: true });
-    // if (!result.canceled) setVideos([...videos, ...result.assets.map(a => a.uri)]);
+  console.log('Video picker icon pressed');
+  console.log('Requesting media library permissions for videos...');
+  console.log('Permission result:', permission);
+  console.log('Launching video picker...');
+  console.log('Video picker result:', result);
+    if (Platform.OS === 'web') {
+      Alert.alert('Not supported', 'Media picking is not supported on web.');
+      return;
+    }
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log('Permission result:', permission);
+    if (!permission || !permission.granted) {
+      Alert.alert('Permission required', 'Please allow access to your media library to select videos.');
+      return;
+    }
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaType.VIDEO,
+        allowsMultipleSelection: true,
+        quality: 0.8,
+      });
+      console.log('Video picker result:', result);
+      if (result && !result.canceled && result.assets && result.assets.length > 0) {
+        setLoading(true);
+        try {
+          const uploaded = await Promise.all(result.assets.map(async (asset) => {
+            const url = await uploadToCloudinary(asset.uri, 'video');
+            return url;
+          }));
+          setVideos([...videos, ...uploaded]);
+        } catch (err) {
+          setError('Failed to upload video(s)');
+        }
+        setLoading(false);
+      } else {
+        console.log('No video selected or picker canceled.');
+      }
+    } catch (err) {
+      console.log('Error launching video picker:', err);
+      setError('Could not open video picker.');
+    }
   };
 
   const handleSubmit = async () => {
@@ -79,6 +165,7 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                   <Text style={[styles.flatCancel, styles.cancelRightPad]}>Cancel</Text>
                 </TouchableOpacity>
               </View>
+              {/* ...existing code... */}
               {/* Preview selected images */}
               {images.length > 0 && (
                 <ScrollView horizontal style={{ marginBottom: 12 }}>

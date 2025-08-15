@@ -300,6 +300,7 @@ function PostsFeedScreen() {
           onDiscoverPress={() => navigation.navigate('AllProfileSuggestions')}
           onMessagesPress={() => {}}
           onPlusPress={() => navigation.navigate('CreatePost')}
+            onSettingsPress={() => navigation.navigate('Settings')}
         />
       </Animated.View>
     </View>
