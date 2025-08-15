@@ -106,11 +106,23 @@ export default function PostCard({ post, navigation }) {
       <View style={styles.card}>
         <View style={styles.header}>
           {avatar ? (
-            <Image source={{ uri: avatar }} style={styles.avatar} />
+            <TouchableOpacity onPress={() => {
+              if (author.username && navigation) {
+                navigation.navigate('PublicProfileScreen', { username: author.username });
+              }
+            }}>
+              <Image source={{ uri: avatar }} style={styles.avatar} />
+            </TouchableOpacity>
           ) : (
-            <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0e0e0' }]}> 
-              <Icon name="user" size={22} color="#888" />
-            </View>
+            <TouchableOpacity onPress={() => {
+              if (author.username && navigation) {
+                navigation.navigate('PublicProfileScreen', { username: author.username });
+              }
+            }}>
+              <View style={[styles.avatar, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#e0e0e0' }]}> 
+                <Icon name="user" size={22} color="#888" />
+              </View>
+            </TouchableOpacity>
           )}
           <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
             <View style={styles.usernameRow}>
