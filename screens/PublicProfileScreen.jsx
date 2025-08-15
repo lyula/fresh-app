@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Linking, ScrollView, ActivityIndicator, FlatList, TextInput } from 'react-native';
 import MainHeader from '../components/MainHeader';
 import PostCard from '../components/PostCard';
+import PostSkeleton from '../components/PostSkeleton';
 import BottomHeader from '../components/BottomHeader';
 import { useUser } from '../context/user';
 import { useNavigation } from '@react-navigation/native';
@@ -237,7 +238,11 @@ export default function PublicProfileScreen({ route }) {
         {/* Tab Content */}
         {activeTab === 'Posts' && (
           loadingPosts ? (
-            <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Loading posts...</Text>
+            <View style={{ width: '100%' }}>
+              {[...Array(3)].map((_, i) => (
+                <PostSkeleton key={i} />
+              ))}
+            </View>
           ) : posts.length === 0 ? (
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No posts yet.</Text>
           ) : (

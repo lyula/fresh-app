@@ -1,25 +1,37 @@
 
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, Image } from 'react-native';
 
 export default function PostSkeleton() {
   return (
     <View>
       <View style={styles.card}>
         <View style={styles.header}>
+          {/* Profile picture skeleton */}
           <View style={styles.avatar} />
-          <View style={styles.usernameRow}>
-            <View style={styles.username} />
-            <View style={styles.badgeIcon} />
-            <View style={styles.badgeText} />
-            <View style={styles.dot} />
-            <View style={styles.time} />
+          <View style={{ flex: 1, flexDirection: 'column', justifyContent: 'center' }}>
+            <View style={styles.usernameRow}>
+              {/* Author name skeleton */}
+              <View style={styles.usernameText} />
+              {/* Bold dot skeleton */}
+              <View style={styles.dotText} />
+              {/* Time skeleton */}
+              <View style={styles.timeText} />
+            </View>
           </View>
+          {/* Three dots icon skeleton */}
           <View style={styles.menuIcon} />
         </View>
+        {/* Post content skeleton */}
         <View style={styles.content} />
+        {/* Post image skeleton */}
         <View style={styles.postImage} />
-        <View style={styles.interactionBar} />
+        {/* Post interaction icons skeleton */}
+        <View style={styles.interactionBarIcons}>
+          <View style={styles.iconSkeleton} />
+          <View style={styles.iconSkeleton} />
+          <View style={styles.iconSkeleton} />
+        </View>
       </View>
       <View style={styles.hr} />
     </View>
@@ -60,12 +72,27 @@ const styles = StyleSheet.create({
     marginTop: 4,
     flex: 1,
   },
-  username: {
+  usernameText: {
     width: 80,
     height: 16,
     borderRadius: 8,
     backgroundColor: '#e5e7eb',
     marginRight: 4,
+  },
+  dotText: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#e5e7eb',
+    marginLeft: 4,
+    marginRight: 4,
+  },
+  timeText: {
+    width: 40,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#e5e7eb',
+    marginLeft: 12,
   },
   badgeIcon: {
     width: 22,
@@ -119,12 +146,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f3f4f6',
     width: '100%',
   },
-  interactionBar: {
-    height: 32,
-    backgroundColor: '#e5e7eb',
-    borderRadius: 8,
+  interactionBarIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
     marginBottom: 8,
     marginHorizontal: 13,
+    gap: 18,
+  },
+  iconSkeleton: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#e5e7eb',
   },
   hr: {
     height: 2,
