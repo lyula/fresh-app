@@ -255,19 +255,17 @@ export default function PublicProfileScreen({ route }) {
           followers.length === 0 ? (
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>No followers yet.</Text>
           ) : (
-            <View style={{ width: '100%', alignItems: 'center', marginTop: 8 }}>
+            <View style={{ width: '100%', marginTop: 8 }}>
               {followers.slice(0, 70).map(follower => (
                 <TouchableOpacity
                   key={follower._id || follower.id || follower.username}
                   style={{
-                    width: '85%',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: 24,
-                    paddingVertical: 12,
-                    paddingHorizontal: 18,
-                    marginBottom: 10,
                     flexDirection: 'row',
                     alignItems: 'center',
+                    paddingVertical: 8,
+                    paddingLeft: 18,
+                    marginLeft: 12,
+                    marginBottom: 6,
                   }}
                   onPress={() => navigation.navigate('PublicProfileScreen', { username: follower.username })}
                 >
@@ -288,19 +286,17 @@ export default function PublicProfileScreen({ route }) {
           following.length === 0 ? (
             <Text style={{ textAlign: 'center', color: '#888', marginTop: 16 }}>Not following anyone yet.</Text>
           ) : (
-            <View style={{ width: '100%', alignItems: 'center', marginTop: 8 }}>
+            <View style={{ width: '100%', marginTop: 8 }}>
               {following.slice(0, 70).map(user => (
                 <TouchableOpacity
                   key={user._id || user.id || user.username}
                   style={{
-                    width: '85%',
-                    backgroundColor: '#f3f4f6',
-                    borderRadius: 24,
-                    paddingVertical: 12,
-                    paddingHorizontal: 18,
-                    marginBottom: 10,
                     flexDirection: 'row',
                     alignItems: 'center',
+                    paddingVertical: 8,
+                    paddingLeft: 18,
+                    marginLeft: 12,
+                    marginBottom: 6,
                   }}
                   onPress={() => navigation.navigate('PublicProfileScreen', { username: user.username })}
                 >
