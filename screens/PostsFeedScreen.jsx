@@ -161,6 +161,12 @@ function PostsFeedScreen() {
     }
   };
 
+  const [visiblePostIds, setVisiblePostIds] = useState([]);
+  const viewabilityConfig = { itemVisiblePercentThreshold: 60 };
+  const onViewableItemsChanged = useRef(({ viewableItems }) => {
+    setVisiblePostIds(viewableItems.map(v => v.item._id || v.item.id));
+  }).current;
+
   // RenderItem logic: after every 4th post (after the 3rd), insert an ad from ads array, cycling through ads
   // Insert ProfileSuggestions after the 5th post (index 4), matching client logic
   const renderItem = ({ item, index }) => {
@@ -169,11 +175,11 @@ function PostsFeedScreen() {
     const shouldShowAd = (index + 1) % adInterval === 0 && index > adStart - 1 && ads.length > 0;
     const adInsertionCount = Math.floor((index + 1 - adStart) / adInterval);
     const adIndex = ads.length > 0 ? adInsertionCount % ads.length : 0;
-    // Show ProfileSuggestions at each interval
     const shouldShowSuggestions = suggestionIntervals.includes(index + 1);
+    const isVisible = visiblePostIds.includes(item._id || item.id);
     return (
       <>
-  <PostCard post={item} navigation={navigation} />
+        <PostCard post={item} navigation={navigation} isVisible={isVisible} />
         {shouldShowSuggestions && (
           <ProfileSuggestions currentUser={user} />
         )}
@@ -280,6 +286,8 @@ function PostsFeedScreen() {
               tintColor="#1E3A8A"
             />
           }
+          viewabilityConfig={viewabilityConfig}
+          onViewableItemsChanged={onViewableItemsChanged}
         />
       )}
 
