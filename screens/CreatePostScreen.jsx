@@ -17,7 +17,8 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
   const [content, setContent] = useState('');
   // Store both local and uploaded URIs for instant preview
   const [images, setImages] = useState([]); // Array of { uri, base64 }
-  const [videos, setVideos] = useState([]); // Array of { uri, base64 }
+  const [videos, setVideos] = useState([]); // Array of { uri, base64, cloudinaryUrl }
+  const [videoUploading, setVideoUploading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
@@ -81,11 +82,21 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
         });
       }
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
-        const newVideos = result.assets.map(asset => ({ uri: asset.uri, base64: asset.base64 }));
-        setVideos(newVideos);
+        setVideoUploading(true);
+        setError('');
+        // Upload to Cloudinary
+        try {
+          const asset = result.assets[0];
+          const cloudinaryUrl = await uploadToCloudinary(asset.uri, 'video');
+          setVideos([{ uri: asset.uri, base64: asset.base64, cloudinaryUrl }]);
+        } catch (err) {
+          setError('Failed to upload video.');
+        }
+        setVideoUploading(false);
       }
     } catch (err) {
       setError('Could not open video picker.');
+      setVideoUploading(false);
     }
   };
 
@@ -184,12 +195,23 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
                 </View>
               )}
               {/* Preview selected videos */}
-              {videos.length > 0 && videos[0].base64 && (
+              {videoUploading && (
+                <View style={{ marginBottom: 12, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color={LINK_COLOR} />
+                  <Text style={{ color: LINK_COLOR, marginTop: 8 }}>Uploading video...</Text>
+                </View>
+              )}
+              {videos.length > 0 && videos[0].cloudinaryUrl && !videoUploading && (
                 <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <Video source={{ uri: 'data:video/mp4;base64,' + videos[0].base64 }} style={styles.mediaPreviewFlat} useNativeControls resizeMode="contain" shouldPlay={false} />
+                  <Video source={{ uri: videos[0].cloudinaryUrl }} style={styles.mediaPreviewFlat} useNativeControls resizeMode="contain" shouldPlay={false} />
                   <TouchableOpacity
                     style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#fff', borderRadius: 16, padding: 4, elevation: 2 }}
-                    onPress={() => setVideos([])}
+                    onPress={async () => {
+                      try {
+                        await deleteFromCloudinary(videos[0].cloudinaryUrl, 'video');
+                      } catch (err) {}
+                      setVideos([]);
+                    }}
                   >
                     <Ionicons name="close-circle" size={28} color="#e11d48" />
                   </TouchableOpacity>
