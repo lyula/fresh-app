@@ -3,6 +3,7 @@ import { useUser } from '../context/user';
 import PostLikesModal from './PostLikesModal';
 import PostComments from './PostComments';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Modal, Dimensions } from 'react-native';
+import { Video } from 'expo-av';
 // Instagram aspect ratio constants
 const INSTAGRAM_MAX_RATIO = 1.25; // 4:5 portrait
 const INSTAGRAM_MIN_RATIO = 1 / 1.91; // 1.91:1 landscape
@@ -41,7 +42,7 @@ function formatPostDate(dateString) {
 }
 import { incrementPostShareCount, editPost, deletePost } from '../utils/api';
 
-export default function PostCard({ post, navigation, onPostDeleted, onPostEdited }) {
+export default function PostCard({ post, navigation, onPostDeleted, onPostEdited, isVisible = true }) {
   const { userId } = useUser();
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
@@ -209,6 +210,34 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
               }
             }}
           />
+        ) : null}
+        {post.video ? (
+          <View style={{ width: screenWidth, alignSelf: 'center' }}>
+            <Video
+              source={{ uri: post.video }}
+              style={{ width: screenWidth, height: mediaHeight, backgroundColor: '#000' }}
+              resizeMode="cover"
+              useNativeControls
+              shouldPlay={isVisible}
+              isLooping
+              onLoad={event => {
+                const { width, height } = event.naturalSize || {};
+                if (width && height) {
+                  const aspectRatio = height / width;
+                  let displayHeight = screenWidth * aspectRatio;
+                  if (aspectRatio > INSTAGRAM_MAX_RATIO) {
+                    displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
+                  } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
+                    displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
+                  }
+                  if (displayHeight > screenHeight) displayHeight = screenHeight;
+                  setMediaHeight(displayHeight);
+                } else {
+                  setMediaHeight(screenWidth);
+                }
+              }}
+            />
+          </View>
         ) : null}
         <PostsInteractionBar
           likes={likes}
