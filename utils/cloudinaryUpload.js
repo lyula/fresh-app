@@ -3,7 +3,7 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
-export async function uploadToCloudinary(uri, type = 'auto', folder = '') {
+export async function uploadToCloudinary(uri, type = 'auto', folder = '', onProgress) {
   const data = new FormData();
   let fileType = type;
   let fileName = uri.split('/').pop();
@@ -21,23 +21,33 @@ export async function uploadToCloudinary(uri, type = 'auto', folder = '') {
   data.append('file', fileObj);
   const uploadPreset = Constants.expoConfig?.extra?.CLOUDINARY_UPLOAD_PRESET;
   const cloudName = Constants.expoConfig?.extra?.CLOUDINARY_CLOUD_NAME;
-  // Debug logging
-  console.log('Cloudinary upload:', { cloudName, uploadPreset, uri, fileObj });
   data.append('upload_preset', uploadPreset);
   if (folder) data.append('folder', folder);
   const url = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
 
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      body: data,
-    });
-    const result = await res.json();
-    if (result.secure_url) return result.secure_url;
-    throw new Error(result.error?.message || 'Upload failed');
-  } catch (err) {
-    throw err;
-  }
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', url);
+    xhr.onload = () => {
+      try {
+        const result = JSON.parse(xhr.responseText);
+        if (result.secure_url) resolve(result.secure_url);
+        else reject(new Error(result.error?.message || 'Upload failed'));
+      } catch (err) {
+        reject(err);
+      }
+    };
+    xhr.onerror = () => reject(new Error('Network error'));
+    if (xhr.upload && typeof onProgress === 'function') {
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable) {
+          const progress = event.loaded / event.total;
+          onProgress(progress);
+        }
+      };
+    }
+    xhr.send(data);
+  });
 }
 
 export async function deleteFromCloudinary(uploadedUri) {

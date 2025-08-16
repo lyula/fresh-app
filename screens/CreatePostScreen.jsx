@@ -1,6 +1,7 @@
 import { View, TextInput, Text, TouchableOpacity, StyleSheet, Image, ScrollView, ActivityIndicator, SafeAreaView, StatusBar, KeyboardAvoidingView } from 'react-native';
+import { ProgressBar } from 'react-native-paper';
 import { Platform } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPost } from '../utils/createPost';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
@@ -19,6 +20,7 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
   const [images, setImages] = useState([]); // Array of { uri, base64 }
   const [videos, setVideos] = useState([]); // Array of { uri, base64, cloudinaryUrl }
   const [videoUploading, setVideoUploading] = useState(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [imagePreview, setImagePreview] = useState(null);
@@ -84,10 +86,13 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
       if (result && !result.canceled && result.assets && result.assets.length > 0) {
         setVideoUploading(true);
         setError('');
-        // Upload to Cloudinary
+        setVideoUploadProgress(0);
         try {
           const asset = result.assets[0];
-          const cloudinaryUrl = await uploadToCloudinary(asset.uri, 'video');
+          // Modified uploadToCloudinary to accept a progress callback
+          const cloudinaryUrl = await uploadToCloudinary(asset.uri, 'video', (progress) => {
+            setVideoUploadProgress(progress);
+          });
           setVideos([{ uri: asset.uri, base64: asset.base64, cloudinaryUrl }]);
         } catch (err) {
           setError('Failed to upload video.');
@@ -156,6 +161,21 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
     else if (navigation) navigation.goBack();
   };
 
+  // Ref for ScrollView and input overlay
+  const scrollViewRef = useRef(null);
+  const inputOverlayRef = useRef(null);
+
+  // Automatically scroll to input overlay when typing
+  useEffect(() => {
+    if (content.length > 0 && inputOverlayRef.current && scrollViewRef.current) {
+      setTimeout(() => {
+        inputOverlayRef.current.measure((fx, fy, width, height, px, py) => {
+          scrollViewRef.current.scrollTo({ y: py - 40, animated: true });
+        });
+      }, 150); // slight delay for rendering
+    }
+  }, [content]);
+
   return (
     <>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" translucent={false} />
@@ -166,6 +186,7 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
       >
         <SafeAreaView style={styles.centeredContainer}>
           <ScrollView
+            ref={scrollViewRef}
             style={{ width: '100%' }}
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
@@ -196,14 +217,58 @@ export default function CreatePostScreen({ navigation, onPostCreated, visible = 
               )}
               {/* Preview selected videos */}
               {videoUploading && (
-                <View style={{ marginBottom: 12, alignItems: 'center' }}>
-                  <ActivityIndicator size="large" color={LINK_COLOR} />
-                  <Text style={{ color: LINK_COLOR, marginTop: 8 }}>Uploading video...</Text>
+                <View style={{ marginBottom: 12, alignItems: 'center', width: '100%' }}>
+                  <ProgressBar progress={videoUploadProgress} color={LINK_COLOR} style={{ height: 8, borderRadius: 8, width: '90%' }} />
+                  <Text style={{ color: LINK_COLOR, marginTop: 8 }}>Uploading video... {Math.round(videoUploadProgress * 100)}%</Text>
                 </View>
               )}
               {videos.length > 0 && videos[0].cloudinaryUrl && !videoUploading && (
-                <View style={{ position: 'relative', marginBottom: 12 }}>
-                  <Video source={{ uri: videos[0].cloudinaryUrl }} style={styles.mediaPreviewFlat} useNativeControls resizeMode="contain" shouldPlay={false} />
+                <View style={{ position: 'relative', marginBottom: 12, justifyContent: 'center', alignItems: 'center' }}>
+                  <Video
+                    source={{ uri: videos[0].cloudinaryUrl }}
+                    style={styles.mediaPreviewFlat}
+                    resizeMode="cover"
+                    shouldPlay={false}
+                    useNativeControls={false}
+                  />
+                  {/* Custom Controls */}
+                  <View style={{ position: 'absolute', bottom: 16, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 16 }}>
+                    <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 24, padding: 8 }} onPress={() => {/* play/pause logic here */}}>
+                      <Ionicons name="play" size={28} color="#fff" />
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{ backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 24, padding: 8 }} onPress={() => {/* mute/unmute logic here */}}>
+                      <Ionicons name="volume-high" size={28} color="#fff" />
+                    </TouchableOpacity>
+                  </View>
+                  {/* Overlay input box when typing */}
+                  {content.length > 0 && (
+                    <View
+                      ref={inputOverlayRef}
+                      style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '100%', justifyContent: 'flex-end', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.15)' }}
+                    >
+                      <TextInput
+                        style={{
+                          width: '90%',
+                          minHeight: 48,
+                          maxHeight: 120,
+                          backgroundColor: 'rgba(255,255,255,0.95)',
+                          borderRadius: 12,
+                          padding: 12,
+                          fontSize: 16,
+                          marginBottom: 24,
+                          color: '#222',
+                        }}
+                        placeholder="What's on your mind?"
+                        placeholderTextColor="#888"
+                        multiline
+                        value={content}
+                        onChangeText={setContent}
+                        textAlignVertical={Platform.OS === 'android' ? 'top' : 'auto'}
+                        maxLength={2200}
+                        autoFocus={true}
+                      />
+                    </View>
+                  )}
                   <TouchableOpacity
                     style={{ position: 'absolute', top: 8, right: 8, backgroundColor: '#fff', borderRadius: 16, padding: 4, elevation: 2 }}
                     onPress={async () => {
@@ -356,13 +421,14 @@ const styles = StyleSheet.create({
     marginLeft: 10,
   },
   mediaPreviewFlat: {
-    width: '96%',
+    width: '100%',
     aspectRatio: 1,
-    borderRadius: 8,
+    borderRadius: 16,
     marginBottom: 12,
-    backgroundColor: '#000',
-    maxHeight: 320,
+    backgroundColor: 'transparent',
+    maxHeight: undefined,
     alignSelf: 'center',
+    overflow: 'hidden',
   },
   inputContainerFlat: {
     width: '96%',
