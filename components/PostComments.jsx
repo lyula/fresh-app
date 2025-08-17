@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/user';
 import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
-import { getPostById, getPostComments, getTotalCommentCount, likePost, addCommentToPost, addReplyToComment } from '../utils/api';
+import { getPostById, getPostComments, getTotalCommentCount, likePost, likeComment, likeReply, addCommentToPost, addReplyToComment } from '../utils/api';
 import { Ionicons, Feather } from '@expo/vector-icons';
 // Use the exact badge URI and style as post author badge
 const VERIFIED_BADGE_URI = 'https://zack-lyula-portfolio.vercel.app/images/blue-badge.png';
