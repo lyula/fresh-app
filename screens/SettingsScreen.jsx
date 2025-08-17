@@ -23,16 +23,18 @@ export default function SettingsScreen() {
             {user?.verified ? <Text style={styles.activeText}>Active</Text> : null}
           </View>
         </TouchableOpacity>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <TouchableOpacity style={styles.item}>
+
+        <Text style={styles.sectionTitle}>Preferences & Appearance</Text>
+        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('NotificationPreferencesScreen')}>
           <MaterialCommunityIcons name="bell" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Notifications</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.item}>
+        <TouchableOpacity style={styles.item} onPress={() => navigation.navigate('ThemeToggleScreen')}>
           <MaterialCommunityIcons name="palette" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Theme</Text>
         </TouchableOpacity>
-        <Text style={styles.sectionTitle}>Support</Text>
+
+        <Text style={styles.sectionTitle}>Support & Contact</Text>
         <TouchableOpacity style={styles.item}>
           <MaterialCommunityIcons name="help-circle" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Help Center</Text>
@@ -41,6 +43,7 @@ export default function SettingsScreen() {
           <MaterialCommunityIcons name="email" size={22} color="#4F8EF7" style={styles.icon} />
           <Text style={styles.itemText}>Contact Us</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={[styles.item, styles.logout]} onPress={async () => {
           await logout();
           navigation.reset({ index: 0, routes: [{ name: 'LoginScreen' }] });

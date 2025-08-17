@@ -48,7 +48,25 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
   const [isMuted, setIsMuted] = useState(true);
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
+  // Unified aspect ratio logic for both images and videos
+  const INSTAGRAM_MAX_RATIO = 1.25; // 4:5 portrait
+  const INSTAGRAM_MIN_RATIO = 1 / 1.91; // 1.91:1 landscape
+  const CAPTION_SPACE = 120; // px reserved for captions below media
   const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
+  // Helper to calculate display height for media
+  const getDisplayHeight = (width, height) => {
+    if (!width || !height) return screenWidth;
+    const aspectRatio = height / width;
+    let displayHeight = screenWidth * aspectRatio;
+    if (aspectRatio > INSTAGRAM_MAX_RATIO) {
+      displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
+    } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
+      displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
+    }
+    // For videos, always leave space for captions
+    if (displayHeight > (screenHeight - CAPTION_SPACE)) displayHeight = screenHeight - CAPTION_SPACE;
+    return displayHeight;
+  };
   const [menuVisible, setMenuVisible] = useState(false);
   const [showFullContent, setShowFullContent] = useState(false);
   const handleEdit = async () => {
@@ -197,21 +215,7 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
             resizeMode="cover"
             onLoad={({ nativeEvent }) => {
               const { width, height } = nativeEvent.source;
-              if (width && height) {
-                const aspectRatio = height / width;
-                let displayHeight = screenWidth * aspectRatio;
-                // Clamp to Instagram's portrait/landscape rules
-                if (aspectRatio > INSTAGRAM_MAX_RATIO) {
-                  displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
-                } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
-                  displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
-                }
-                // Never exceed screen height
-                if (displayHeight > screenHeight) displayHeight = screenHeight;
-                setMediaHeight(displayHeight);
-              } else {
-                setMediaHeight(screenWidth); // fallback to square
-              }
+              setMediaHeight(getDisplayHeight(width, height));
             }}
           />
         ) : null}
@@ -232,19 +236,7 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
                 }}
                 onLoad={event => {
                   const { width, height } = event.naturalSize || {};
-                  if (width && height) {
-                    const aspectRatio = height / width;
-                    let displayHeight = screenWidth * aspectRatio;
-                    if (aspectRatio > INSTAGRAM_MAX_RATIO) {
-                      displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
-                    } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
-                      displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
-                    }
-                    if (displayHeight > screenHeight) displayHeight = screenHeight;
-                    setMediaHeight(displayHeight);
-                  } else {
-                    setMediaHeight(screenWidth);
-                  }
+                  setMediaHeight(getDisplayHeight(width, height));
                 }}
               />
               {/* Speaker icon overlay for mute/unmute */}
