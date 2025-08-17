@@ -76,7 +76,7 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
   };
   const author = post.author || post.user || {};
   const authorId = author._id || author.id;
-  const avatar = author.profileImage || author.avatar || (author.profile && author.profile.profileImage) || null;
+  const avatar = author.profileImage || author.avatar || (author.profile?.profileImage) || null;
   let content = '';
   if (typeof post.content === 'string') {
     content = post.content;

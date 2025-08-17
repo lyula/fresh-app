@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import PostCard from '../components/PostCard';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
 
 export default function PostDetailScreen() {
   const route = useRoute();
+  const navigation = useNavigation();
   const { postId } = route.params || {};
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -40,10 +42,24 @@ export default function PostDetailScreen() {
     return <View style={styles.center}><Text style={styles.error}>Post not found.</Text></View>;
   }
 
+  // Ensure author info is nested for PostCard
+  const postWithAuthor = {
+    ...post,
+    author: post.author || {
+      username: post.username,
+      name: post.name,
+      profileImage: post.profileImage,
+      avatar: post.avatar,
+      verified: post.verified,
+      badge: post.badge,
+      _id: post.userId || post._id || post.id,
+    },
+  };
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ alignItems: 'center', padding: 16 }}>
       {/* Render full PostCard at the top */}
-      <PostCard post={post} navigation={null} />
+      <PostCard post={postWithAuthor} navigation={navigation} />
       {/* Comments section as before */}
       <View style={styles.commentsSection}>
         {post.comments?.map((comment, idx) => (
