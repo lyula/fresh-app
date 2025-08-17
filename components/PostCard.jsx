@@ -178,29 +178,7 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
           )}
         </View>
         {/* Show only first 3 lines of content, with More/Less inline link */}
-        <View style={{ marginBottom: 8, paddingLeft: 13, paddingRight: 13 }}>
-          <Text
-            style={styles.content}
-            numberOfLines={showFullContent ? undefined : 3}
-            ellipsizeMode={'tail'}
-          >
-            {content}
-          </Text>
-          {!showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
-            <TouchableOpacity onPress={() => setShowFullContent(true)}>
-              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
-                Read more
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-          {showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
-            <TouchableOpacity onPress={() => setShowFullContent(false)}>
-              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
-                Less
-              </Text>
-            </TouchableOpacity>
-          ) : null}
-        </View>
+       
         {post.image ? (
           <Image
             source={{ uri: post.image }}
@@ -263,6 +241,29 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
             />
           </View>
         ) : null}
+         <View style={{ marginBottom: 8, paddingLeft: 6, paddingRight: 6, paddingTop: 4 }}>
+          <Text
+            style={styles.content}
+            numberOfLines={showFullContent ? undefined : 3}
+            ellipsizeMode={'tail'}
+          >
+            {content}
+          </Text>
+          {!showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
+            <TouchableOpacity onPress={() => setShowFullContent(true)}>
+              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
+                Read more
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+          {showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
+            <TouchableOpacity onPress={() => setShowFullContent(false)}>
+              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
+                Less
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
         <PostsInteractionBar
           likes={likes}
           comments={comments}
