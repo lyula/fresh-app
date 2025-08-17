@@ -4,6 +4,7 @@ import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Image, Touc
 import axios from 'axios';
 import moment from 'moment';
 import MainHeader from '../components/MainHeader';
+import { getBadgePaymentById, getJournalPaymentById } from '../utils/api';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -127,52 +128,102 @@ export default function NotificationsScreen() {
         : (item.from?.username && !/^\w{24}$/.test(item.from.username))
           ? item.from.username
           : '';
+    // Navigation logic based on notification type
+    const handleNotificationPress = async () => {
+      // Payment notification: fetch payment object and navigate
+  if (item.type === 'badge_payment' && item.payment) {
+        try {
+          const paymentObj = await getBadgePaymentById(item.payment);
+          if (paymentObj) {
+            paymentObj._paymentType = 'badge';
+            navigation.navigate('PaymentsDetailScreen', { paymentId: paymentObj._id || paymentObj.id, paymentType: 'badge', payment: paymentObj });
+          } else {
+            navigation.navigate('PaymentsDetailScreen', { paymentId: item.payment, paymentType: 'badge' });
+          }
+        } catch (err) {
+          navigation.navigate('PaymentsDetailScreen', { paymentId: item.payment, paymentType: 'badge' });
+        }
+        return;
+      }
+  if (item.type === 'journal_payment' && item.payment) {
+        try {
+          const paymentObj = await getJournalPaymentById(item.payment);
+          if (paymentObj) {
+            paymentObj._paymentType = 'journal';
+            navigation.navigate('PaymentsDetailScreen', { paymentId: paymentObj._id || paymentObj.id, paymentType: 'journal', payment: paymentObj });
+          } else {
+            navigation.navigate('PaymentsDetailScreen', { paymentId: item.payment, paymentType: 'journal' });
+          }
+        } catch (err) {
+          navigation.navigate('PaymentsDetailScreen', { paymentId: item.payment, paymentType: 'journal' });
+        }
+        return;
+      }
+      // Log post-related navigation
+      if (item.post) {
+        const params = { postId: item.post };
+        if (item.comment) params.commentId = item.comment;
+        if (item.reply) params.replyId = item.reply;
+        navigation.navigate('PostDetailScreen', params);
+        return;
+      }
+      // Post-related notifications
+      if (item.post) {
+        // Comment/reply navigation
+        const params = { postId: item.post };
+        if (item.comment) params.commentId = item.comment;
+        if (item.reply) params.replyId = item.reply;
+        navigation.navigate('PostDetailScreen', params);
+        return;
+      }
+    };
     return (
-      <View style={styles.notificationRow}>
-        {/* Avatar and message on same row */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-          <TouchableOpacity
-            disabled={!styledUsername}
-            onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
-          >
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Icon name="user" size={22} color="#888" />
-              </View>
-            )}
-          </TouchableOpacity>
-          <View style={[styles.notificationContent, { flex: 1 }]}>  
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
-              {/* Username clickable */}
-              <Text
-                style={styles.user}
-                onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
-              >
-                {styledUsername}
-              </Text>
-              {/* Always add a space between username and message if both exist */}
-              {styledUsername && (item.message || item.text || item.body) ? <Text> </Text> : null}
-              <TouchableOpacity
-                disabled={!item.postId}
-                onPress={() => item.postId && navigation.navigate('PostDetailScreen', { postId: item.postId })}
-              >
+      <TouchableOpacity onPress={handleNotificationPress} activeOpacity={0.7}>
+        <View style={styles.notificationRow}>
+          {/* Avatar and message on same row */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+            <TouchableOpacity
+              disabled={!styledUsername}
+              onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
+            >
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Icon name="user" size={22} color="#888" />
+                </View>
+              )}
+            </TouchableOpacity>
+            <View style={[styles.notificationContent, { flex: 1 }]}>  
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+                {/* Username clickable */}
+                <Text
+                  style={styles.user}
+                  onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
+                >
+                  {styledUsername}
+                </Text>
+                {/* Always add a space between username and message if both exist */}
+                {styledUsername && (item.message || item.text || item.body) ? <Text> </Text> : null}
                 <Text style={styles.message}>{
                   (() => {
                     let msg = item.message || item.text || item.body || '';
+                    // Format payment figures with commas
+                    if ((item.type === 'badge_payment' || item.type === 'journal_payment') && typeof item.amount === 'number') {
+                      msg = msg.replace(/\d+(?:,\d{3})*/, item.amount.toLocaleString());
+                    }
                     if (styledUsername && msg.startsWith(styledUsername)) {
                       msg = msg.slice(styledUsername.length).replace(/^\s+/, '');
                     }
                     return msg;
                   })()
                 }</Text>
-              </TouchableOpacity>
+              </View>
+              <Text style={styles.time}>{formatRelativeTime(item.time || item.createdAt)}</Text>
             </View>
-            <Text style={styles.time}>{formatRelativeTime(item.time || item.createdAt)}</Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

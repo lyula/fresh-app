@@ -3,34 +3,60 @@ import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, StyleSheet
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getBadgePayments, getJournalPayments } from '../utils/api';
+import { getBadgePaymentById, getJournalPaymentById } from '../utils/api';
 
 export default function PaymentsDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
-  const { paymentId } = route.params || {};
-  const [loading, setLoading] = useState(true);
-  const [payment, setPayment] = useState(null);
-  const [isJournal, setIsJournal] = useState(false);
+  const { paymentId, paymentType, payment: paymentParam } = route.params || {};
+  const [loading, setLoading] = useState(!paymentParam);
+  const [payment, setPayment] = useState(paymentParam || null);
+  const [isJournal, setIsJournal] = useState(paymentParam?._paymentType === 'journal');
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (paymentParam) return; // Already have payment object
     async function fetchPayment() {
       setLoading(true);
       setError(null);
       try {
-        // Use robust payment fetching functions
-        const [badgePayments, journalPayments] = await Promise.all([
-          getBadgePayments(),
-          getJournalPayments()
-        ]);
-        const allPayments = [...(badgePayments || []), ...(journalPayments || [])];
-        const found = allPayments.find(
-          p => (p._id || p.id) === paymentId || String(p._id || p.id) === String(paymentId)
-        );
+        let found = null;
+        let journalFound = false;
+        // Try direct fetch by ID first
+        if (paymentType === 'badge') {
+          found = await getBadgePaymentById(paymentId);
+        } else if (paymentType === 'journal') {
+          found = await getJournalPaymentById(paymentId);
+          journalFound = !!found;
+        } else {
+          // fallback: try both
+          found = await getBadgePaymentById(paymentId);
+          if (!found) {
+            found = await getJournalPaymentById(paymentId);
+            journalFound = !!found;
+          }
+        }
+        // If not found, fallback to array search (legacy logic)
+        if (!found) {
+          const [badgePayments, journalPayments] = await Promise.all([
+            getBadgePayments(),
+            getJournalPayments()
+          ]);
+          let badgeArr = Array.isArray(badgePayments) ? badgePayments : badgePayments ? [badgePayments] : [];
+          let journalArr = Array.isArray(journalPayments) ? journalPayments : journalPayments ? [journalPayments] : [];
+          badgeArr = badgeArr.map(p => ({ ...p, _paymentType: 'badge' }));
+          journalArr = journalArr.map(p => ({ ...p, _paymentType: 'journal' }));
+          const allPayments = [...badgeArr, ...journalArr];
+          const allIds = allPayments.map(p => String(p._id || p.id));
+          found = allPayments.find(p => {
+            const pid = p._id || p.id;
+            return pid === paymentId || String(pid) === String(paymentId);
+          });
+          journalFound = found?._paymentType === 'journal';
+        }
+  // ...existing code...
         setPayment(found || null);
-        setIsJournal(!!journalPayments.find(
-          p => (p._id || p.id) === paymentId || String(p._id || p.id) === String(paymentId)
-        ));
+        setIsJournal(journalFound);
       } catch (err) {
         setError('Failed to fetch payment details.');
       } finally {
@@ -38,14 +64,11 @@ export default function PaymentsDetailScreen() {
       }
     }
     fetchPayment();
-  }, [paymentId]);
+  }, [paymentId, paymentType, paymentParam]);
 
   if (loading) {
     return (
       <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()} disabled>
-          <Text style={styles.backText}>← Back</Text>
-        </TouchableOpacity>
         <View style={[styles.card, { opacity: 0.5 }]}> 
           <Text style={styles.title}>Payment Details</Text>
           <View style={styles.detailRow}><Text style={[styles.label, styles.skeleton]}>M-Pesa Code:</Text><Text style={[styles.value, styles.skeleton]}>----</Text></View>
@@ -74,9 +97,6 @@ export default function PaymentsDetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>← Back</Text>
-      </TouchableOpacity>
       <View style={styles.card}>
         <Text style={styles.title}>{isJournal ? 'Journal Payment Details' : 'Payment Details'}</Text>
         <View style={styles.detailRow}><Text style={styles.label}>M-Pesa Code:</Text><Text style={styles.value}>{isJournal ? payment.mpesaCode || payment.code || payment.receipt || payment.rawResponse?.MpesaReceiptNumber || payment.rawResponse?.receipt || '-' : payment.mpesaCode || payment.code || '-'}</Text></View>
@@ -97,7 +117,6 @@ export default function PaymentsDetailScreen() {
         <View style={styles.detailRow}><Text style={styles.label}>Phone Number:</Text><Text style={styles.value}>{isJournal ? payment.phone || payment.rawResponse?.Phone || payment.methodDetails?.MpesaReceiptNumber || '-' : payment.rawResponse?.Phone || payment.methodDetails?.MpesaReceiptNumber || '-'}</Text></View>
         <View style={styles.detailRow}><Text style={styles.label}>Reference:</Text><Text style={styles.value}>{isJournal ? payment.rawResponse?.ExternalReference || payment.rawResponse?.external_reference || payment.transactionId || '-' : payment.rawResponse?.ExternalReference || payment.rawResponse?.external_reference || '-'}</Text></View>
       </View>
-
     </ScrollView>
   );
 }
@@ -108,7 +127,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#f7f8fa',
     padding: 16,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center', // Center vertically
+    minHeight: '100%', // Ensure full screen height
   },
   backButton: {
     alignSelf: 'flex-start',

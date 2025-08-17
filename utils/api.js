@@ -1,3 +1,22 @@
+// Fetch a single badge payment by ID
+export async function getBadgePaymentById(paymentId, tokenOverride = null) {
+  const token = tokenOverride || await getToken();
+  const res = await fetch(`${API_BASE}/badge-payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
+
+// Fetch a single journal payment by ID
+export async function getJournalPaymentById(paymentId, tokenOverride = null) {
+  const token = tokenOverride || await getToken();
+  const res = await fetch(`${API_BASE}/journal-payments/${paymentId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  return await res.json();
+}
 // Like a comment
 export async function likeComment(postId, commentId) {
   const token = await getToken();
@@ -48,8 +67,10 @@ export async function addReplyToComment(postId, commentId, content) {
   if (!res.ok) throw new Error('Failed to add reply');
   return await res.json();
 }
+// ...existing code...
 import AsyncStorage from '@react-native-async-storage/async-storage';
-const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.EXPO_PUBLIC_API_URL;
+import Constants from 'expo-constants';
+const API_BASE = Constants.expoConfig?.extra?.API_BASE_URL || Constants.manifest?.extra?.API_BASE_URL;
 
 // Get latest badge payment (client logic)
 export async function getLatestBadgePayment() {
@@ -72,7 +93,7 @@ export async function getLatestBadgePayment() {
 }
 // Robust payment fetching functions (matching client logic)
 export async function getBadgePayments(tokenOverride = null) {
-  const token = tokenOverride || await getToken();
+  const token = tokenOverride || await AsyncStorage.getItem('token');
   const res = await fetch(`${API_BASE}/badge-payments/my`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -82,7 +103,7 @@ export async function getBadgePayments(tokenOverride = null) {
 }
 
 export async function getJournalPayments(tokenOverride = null) {
-  const token = tokenOverride || await getToken();
+  const token = tokenOverride || await AsyncStorage.getItem('token');
   const res = await fetch(`${API_BASE}/journal-payments`, {
     headers: { Authorization: `Bearer ${token}` },
   });
