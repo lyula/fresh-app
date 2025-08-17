@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Image, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import moment from 'moment';
@@ -128,40 +129,48 @@ export default function NotificationsScreen() {
           : '';
     return (
       <View style={styles.notificationRow}>
-        {/* Profile image clickable */}
-        <TouchableOpacity
-          disabled={!styledUsername}
-          onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
-        >
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.avatarImage} />
-          ) : (
-            <View style={styles.avatarPlaceholder} />
-          )}
-        </TouchableOpacity>
-        <View style={styles.notificationContent}>
-          <Text style={styles.notificationText}>
-            {/* Username clickable */}
-            <Text
-              style={styles.user}
-              onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
-            >
-              {styledUsername}
-            </Text>
-            {/* Always add a space between username and message if both exist */}
-            {styledUsername && (item.message || item.text || item.body) ? ' ' : ''}
-            <Text style={styles.message}>{
-              // Remove username at the start of the message if present
-              (() => {
-                let msg = item.message || item.text || item.body || '';
-                if (styledUsername && msg.startsWith(styledUsername)) {
-                  msg = msg.slice(styledUsername.length).replace(/^\s+/, '');
-                }
-                return msg;
-              })()
-            }</Text>
-          </Text>
-          <Text style={styles.time}>{formatRelativeTime(item.time || item.createdAt)}</Text>
+        {/* Avatar and message on same row */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+          <TouchableOpacity
+            disabled={!styledUsername}
+            onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
+          >
+            {profileImage ? (
+              <Image source={{ uri: profileImage }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Icon name="user" size={22} color="#888" />
+              </View>
+            )}
+          </TouchableOpacity>
+          <View style={[styles.notificationContent, { flex: 1 }]}>  
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center' }}>
+              {/* Username clickable */}
+              <Text
+                style={styles.user}
+                onPress={() => styledUsername && navigation.navigate('PublicProfileScreen', { username: styledUsername })}
+              >
+                {styledUsername}
+              </Text>
+              {/* Always add a space between username and message if both exist */}
+              {styledUsername && (item.message || item.text || item.body) ? <Text> </Text> : null}
+              <TouchableOpacity
+                disabled={!item.postId}
+                onPress={() => item.postId && navigation.navigate('PostDetailScreen', { postId: item.postId })}
+              >
+                <Text style={styles.message}>{
+                  (() => {
+                    let msg = item.message || item.text || item.body || '';
+                    if (styledUsername && msg.startsWith(styledUsername)) {
+                      msg = msg.slice(styledUsername.length).replace(/^\s+/, '');
+                    }
+                    return msg;
+                  })()
+                }</Text>
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.time}>{formatRelativeTime(item.time || item.createdAt)}</Text>
+          </View>
         </View>
       </View>
     );
@@ -214,6 +223,8 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     backgroundColor: '#e5e7eb',
     marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   avatarImage: {
     width: 38,

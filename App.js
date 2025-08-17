@@ -59,6 +59,7 @@ export default function App() {
                   <Stack.Screen name="PaypalPaymentScreen" component={PaypalPaymentScreen} options={{ title: 'PayPal Payment' }} />
                   <Stack.Screen name="StripePaymentScreen" component={StripePaymentScreen} options={{ title: 'Stripe Payment' }} />
                   <Stack.Screen name="CardPaymentScreen" component={CardPaymentScreen} options={{ title: 'Card Payment' }} />
+                  <Stack.Screen name="PostDetailScreen" component={require('./screens/PostDetailScreen').default} options={{ title: 'Post' }} />
                 </Stack.Navigator>
                 <Sidebar />
               </SidebarProvider>
