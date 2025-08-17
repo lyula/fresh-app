@@ -219,21 +219,22 @@ export default function PostComments({ postId, visible, onClose }) {
 
   const handleSend = () => {
     if (!input.trim()) return;
-    const postAction = replyTo
-      ? addReplyToComment(postId, replyTo, input.trim())
+    // Clear replyTo before fetching comments to avoid double render
+    const currentReplyTo = replyTo;
+    setReplyTo(null);
+    const postAction = currentReplyTo
+      ? addReplyToComment(postId, currentReplyTo, input.trim())
       : addCommentToPost(postId, input.trim());
     postAction
-      .then(() => {
-        // Always fetch latest comments from DB after posting
-        return getPostComments(postId);
-      })
+      .then(() => getPostComments(postId))
       .then(fetchedComments => {
         setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
+        // Reset showReplies state to avoid duplicate rendering
+        setShowReplies({});
       })
       .catch(() => {})
       .finally(() => {
         setInput('');
-        setReplyTo(null);
       });
   };
   const [loading, setLoading] = useState(false);
