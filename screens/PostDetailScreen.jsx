@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import PostCard from '../components/PostCard';
 import { View, Text, Image, ActivityIndicator, StyleSheet, ScrollView } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import Constants from 'expo-constants';
@@ -41,23 +42,9 @@ export default function PostDetailScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ alignItems: 'center', padding: 16 }}>
-      {/* User info */}
-      <View style={styles.userRow}>
-        <Image source={{ uri: post.user?.profileImage || post.user?.avatar }} style={styles.avatar} />
-        <Text style={styles.username}>{post.user?.username}</Text>
-      </View>
-      {/* Post image */}
-      {post.image && (
-        <Image source={{ uri: post.image }} style={styles.postImage} />
-      )}
-      {/* Post text */}
-      <Text style={styles.caption}>{post.caption || post.text || ''}</Text>
-      {/* Post stats */}
-      <View style={styles.statsRow}>
-        <Text style={styles.stat}>{post.likes?.length || 0} Likes</Text>
-        <Text style={styles.stat}>{post.comments?.length || 0} Comments</Text>
-      </View>
-      {/* Comments */}
+      {/* Render full PostCard at the top */}
+      <PostCard post={post} navigation={null} />
+      {/* Comments section as before */}
       <View style={styles.commentsSection}>
         {post.comments?.map((comment, idx) => (
           <View key={comment._id || idx} style={styles.commentRow}>
@@ -131,8 +118,6 @@ const styles = StyleSheet.create({
   commentsSection: {
     width: '100%',
     marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
     paddingTop: 10,
   },
   commentRow: {

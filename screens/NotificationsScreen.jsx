@@ -129,6 +129,28 @@ export default function NotificationsScreen() {
           ? item.from.username
           : '';
     // Navigation logic based on notification type
+    const getHighlightedText = () => {
+      let msg = item.message || item.text || item.body || '';
+      let highlight = '';
+      if (item.commentText) {
+        highlight = item.commentText.slice(0, 20);
+      } else if (item.replyText) {
+        highlight = item.replyText.slice(0, 20);
+      } else if (item.comment) {
+        highlight = String(item.comment).slice(0, 20);
+      } else if (item.reply) {
+        highlight = String(item.reply).slice(0, 20);
+      }
+      if (highlight) {
+        return (
+          <>
+            <Text style={{ fontWeight: 'bold', color: '#2563eb' }}>{highlight}</Text>
+            <Text style={styles.message}> {msg}</Text>
+          </>
+        );
+      }
+      return <Text style={styles.message}>{msg}</Text>;
+    };
     const handleNotificationPress = async () => {
       // Payment notification: fetch payment object and navigate
   if (item.type === 'badge_payment' && item.payment) {
@@ -205,19 +227,7 @@ export default function NotificationsScreen() {
                 </Text>
                 {/* Always add a space between username and message if both exist */}
                 {styledUsername && (item.message || item.text || item.body) ? <Text> </Text> : null}
-                <Text style={styles.message}>{
-                  (() => {
-                    let msg = item.message || item.text || item.body || '';
-                    // Format payment figures with commas
-                    if ((item.type === 'badge_payment' || item.type === 'journal_payment') && typeof item.amount === 'number') {
-                      msg = msg.replace(/\d+(?:,\d{3})*/, item.amount.toLocaleString());
-                    }
-                    if (styledUsername && msg.startsWith(styledUsername)) {
-                      msg = msg.slice(styledUsername.length).replace(/^\s+/, '');
-                    }
-                    return msg;
-                  })()
-                }</Text>
+                {getHighlightedText()}
               </View>
               <Text style={styles.time}>{formatRelativeTime(item.time || item.createdAt)}</Text>
             </View>
