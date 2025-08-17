@@ -48,6 +48,7 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
   const screenHeight = Dimensions.get('window').height;
   const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
   const [menuVisible, setMenuVisible] = useState(false);
+  const [showFullContent, setShowFullContent] = useState(false);
   const handleEdit = async () => {
     setMenuVisible(false);
     // Simple prompt for new content (replace with modal for production)
@@ -176,7 +177,30 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
             </TouchableOpacity>
           )}
         </View>
-        <Text style={styles.content}>{content}</Text>
+        {/* Show only first 3 lines of content, with More/Less inline link */}
+        <View style={{ marginBottom: 8, paddingLeft: 13, paddingRight: 13 }}>
+          <Text
+            style={styles.content}
+            numberOfLines={showFullContent ? undefined : 3}
+            ellipsizeMode={'tail'}
+          >
+            {content}
+          </Text>
+          {!showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
+            <TouchableOpacity onPress={() => setShowFullContent(true)}>
+              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
+                Read more
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+          {showFullContent && (content && (content.split('\n').length > 3 || content.length > 200)) ? (
+            <TouchableOpacity onPress={() => setShowFullContent(false)}>
+              <Text style={{ color: '#1E3A8A', fontWeight: 'bold', marginTop: 2 }}>
+                Less
+              </Text>
+            </TouchableOpacity>
+          ) : null}
+        </View>
         {post.image ? (
           <Image
             source={{ uri: post.image }}
