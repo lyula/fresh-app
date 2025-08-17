@@ -72,6 +72,33 @@ export default function PostComments({ postId, visible, onClose }) {
     setReplyLikeLoading(l => ({ ...l, [replyId]: false }));
   };
 
+  function renderHighlightedContent(text, navigation) {
+    const mentionRegex = /@([a-zA-Z0-9_]+)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = mentionRegex.exec(text)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push(text.slice(lastIndex, match.index));
+      }
+      const username = match[1];
+      parts.push(
+        <Text
+          key={match.index}
+          style={{ color: '#1E3A8A', fontWeight: '500' }}
+          onPress={() => navigation && navigation.navigate('PublicProfileScreen', { username })}
+        >
+          @{username}
+        </Text>
+      );
+      lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+      parts.push(text.slice(lastIndex));
+    }
+    return parts;
+  }
+
   const renderReply = (reply) => {
     const imgUri = getProfileImage(reply.author);
     const isVerified = reply.author?.verified;
@@ -98,7 +125,7 @@ export default function PostComments({ postId, visible, onClose }) {
               <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
             )}
           </View>
-          <Text style={styles.replyText}>{reply.text || reply.content || ''}</Text>
+          <Text style={styles.replyText}>{renderHighlightedContent(reply.text || reply.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>
             <TouchableOpacity style={styles.likeBtn} onPress={() => handleReplyLike(reply._id, reply.likes)} disabled={replyLikeLoading[reply._id]}>
               <Ionicons name={liked ? 'heart' : 'heart-outline'} size={16} color={liked ? '#e11d48' : '#e11d48'} />
@@ -114,6 +141,10 @@ export default function PostComments({ postId, visible, onClose }) {
   };
 
   const handleReply = (commentId) => {
+    // Pre-fill input with @username of comment author
+    const comment = comments.find(c => c._id === commentId);
+    const username = comment?.author?.username || comment?.author?.name || '';
+    setInput(`@${username} `);
     setReplyTo(commentId);
     inputRef.current?.focus();
   };
@@ -167,7 +198,7 @@ export default function PostComments({ postId, visible, onClose }) {
               <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
             )}
           </View>
-          <Text style={styles.commentText}>{item.text || item.content || ''}</Text>
+          <Text style={styles.commentText}>{renderHighlightedContent(item.text || item.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>
             <TouchableOpacity style={styles.likeBtn} onPress={() => handleCommentLike(item._id, item.likes)} disabled={commentLikeLoading[item._id]}>
               <Ionicons name={liked ? 'heart' : 'heart-outline'} size={18} color={liked ? '#e11d48' : '#e11d48'} />
