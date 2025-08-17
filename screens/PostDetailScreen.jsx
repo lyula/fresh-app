@@ -48,7 +48,6 @@ export default function PostDetailScreen() {
       <View style={styles.commentsSection}>
         {post.comments?.map((comment, idx) => (
           <View key={comment._id || idx} style={styles.commentRow}>
-            <Text style={styles.commentUser}>{comment.user?.username || 'User'}:</Text>
             <Text style={styles.commentText}>{comment.text}</Text>
           </View>
         ))}
