@@ -1,3 +1,32 @@
+// Add a comment to a post
+export async function addCommentToPost(postId, content) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error('Failed to add comment');
+  return await res.json();
+}
+
+// Add a reply to a comment
+export async function addReplyToComment(postId, commentId, content) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}/replies`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ content }),
+  });
+  if (!res.ok) throw new Error('Failed to add reply');
+  return await res.json();
+}
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const API_BASE = process.env.EXPO_PUBLIC_API_BASE_URL || process.env.EXPO_PUBLIC_API_URL;
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/user';
 import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
-import { getPostById, getPostComments, getTotalCommentCount, likePost } from '../utils/api';
+import { getPostById, getPostComments, getTotalCommentCount, likePost, addCommentToPost, addReplyToComment } from '../utils/api';
 import { Ionicons, Feather } from '@expo/vector-icons';
 // Use the exact badge URI and style as post author badge
 const VERIFIED_BADGE_URI = 'https://zack-lyula-portfolio.vercel.app/images/blue-badge.png';
@@ -218,8 +218,23 @@ export default function PostComments({ postId, visible, onClose }) {
   };
 
   const handleSend = () => {
-    // TODO: Implement add comment API
-    setInput('');
+    if (!input.trim()) return;
+    const postAction = replyTo
+      ? addReplyToComment(postId, replyTo, input.trim())
+      : addCommentToPost(postId, input.trim());
+    postAction
+      .then(() => {
+        // Always fetch latest comments from DB after posting
+        return getPostComments(postId);
+      })
+      .then(fetchedComments => {
+        setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
+      })
+      .catch(() => {})
+      .finally(() => {
+        setInput('');
+        setReplyTo(null);
+      });
   };
   const [loading, setLoading] = useState(false);
   const [input, setInput] = useState('');
