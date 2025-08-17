@@ -146,6 +146,7 @@ export default function RegisterScreen() {
   const [country, setCountry] = useState('');
   const [showCountryList, setShowCountryList] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleRegister = async () => {
     if (!username || !email || !password || !confirm || !gender || !dob || !country) {
@@ -195,7 +196,11 @@ export default function RegisterScreen() {
       });
       const result = await response.json();
       if (response.ok && result.message === 'User registered successfully') {
-        navigation.replace('Login');
+        setSuccess(true);
+        setTimeout(() => {
+          setSuccess(false);
+          navigation.replace('Login');
+        }, 1500);
       } else {
         setError(result.message || 'Registration failed.');
       }
@@ -320,6 +325,11 @@ export default function RegisterScreen() {
       </View>
       {error ? (
         <Text style={{ color: 'red', marginBottom: 8, marginTop: 8, textAlign: 'center' }}>{error}</Text>
+      ) : null}
+      {success ? (
+        <Text style={{ color: 'green', marginBottom: 8, marginTop: 8, textAlign: 'center', fontWeight: 'bold' }}>
+          Registration successful!
+        </Text>
       ) : null}
       <Button onPress={handleRegister}>
         <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16 }}>Register</Text>

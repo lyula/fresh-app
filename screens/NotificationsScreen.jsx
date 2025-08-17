@@ -119,28 +119,20 @@ export default function NotificationsScreen() {
 
   const renderItem = ({ item }) => {
     // Use cached profile image if available
-    const username = item.from?.username || item.username;
-    const profileImage = username && profileImages[username] ? profileImages[username] : null;
-    const styledUsername = (item.username && !/^\w{24}$/.test(item.username))
-      ? item.username
-      : (item.user && !/^\w{24}$/.test(item.user))
-        ? item.user
-        : (item.from?.username && !/^\w{24}$/.test(item.from.username))
-          ? item.from.username
-          : '';
+  const username = typeof item.username === 'string' && !/^[a-f\d]{24}$/i.test(item.username) ? item.username : '';
+  const profileImage = username && profileImages[username] ? profileImages[username] : null;
+  const styledUsername = username;
     // Navigation logic based on notification type
     const getHighlightedText = () => {
       let msg = item.message || item.text || item.body || '';
+      // Only show highlight for comment/reply text, not for IDs
       let highlight = '';
       if (item.commentText) {
         highlight = item.commentText.slice(0, 20);
       } else if (item.replyText) {
         highlight = item.replyText.slice(0, 20);
-      } else if (item.comment) {
-        highlight = String(item.comment).slice(0, 20);
-      } else if (item.reply) {
-        highlight = String(item.reply).slice(0, 20);
       }
+      // Do NOT use item.comment or item.reply as highlight if they are IDs
       if (highlight) {
         return (
           <>
