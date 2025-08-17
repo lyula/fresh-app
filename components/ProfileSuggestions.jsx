@@ -51,6 +51,13 @@ export default function ProfileSuggestions({ currentUser, onFollow, onDismiss })
 
   const handleFollow = (id) => {
     setFollowing(prev => [...prev, id]);
+    // Actually follow the user in the backend
+    import('../utils/api').then(api => {
+      api.followUser(id).catch(err => {
+        // Optionally show error to user
+        setFollowing(prev => prev.filter(f => f !== id));
+      });
+    });
     if (onFollow) onFollow(id);
   };
   const handleDismiss = async (id) => {

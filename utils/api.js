@@ -1,3 +1,13 @@
+// Follow a user
+export async function followUser(userIdToFollow) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/user/follow/${userIdToFollow}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to follow user');
+  return await res.json();
+}
 // Fetch a single badge payment by ID
 export async function getBadgePaymentById(paymentId, tokenOverride = null) {
   const token = tokenOverride || await getToken();
