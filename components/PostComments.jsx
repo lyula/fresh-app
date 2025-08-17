@@ -59,15 +59,13 @@ export default function PostComments({ postId, visible, onClose }) {
     if (replyLikeLoading[replyId]) return;
     setReplyLikeLoading(l => ({ ...l, [replyId]: true }));
     try {
-      await likePost(replyId);
-      setComments(comments => comments.map(c => ({
-        ...c,
-        replies: c.replies?.map(r =>
-          r._id === replyId
-            ? { ...r, likes: isLikedByUser(r.likes) ? r.likes.filter(u => (u === userId || u?._id === userId) === false) : [...(r.likes || []), userId] }
-            : r
-        )
-      })));
+      // Find the parent commentId for this reply
+      const parentComment = comments.find(c => Array.isArray(c.replies) && c.replies.some(r => r._id === replyId));
+      if (!parentComment) throw new Error('Parent comment not found');
+      await likeReply(postId, parentComment._id, replyId);
+      // Always fetch latest comments from backend to reflect true likes state
+      const updatedComments = await getPostComments(postId);
+      setComments(Array.isArray(updatedComments) ? updatedComments : []);
     } catch {}
     setReplyLikeLoading(l => ({ ...l, [replyId]: false }));
   };
@@ -153,12 +151,10 @@ export default function PostComments({ postId, visible, onClose }) {
     if (commentLikeLoading[commentId]) return;
     setCommentLikeLoading(l => ({ ...l, [commentId]: true }));
     try {
-      await likePost(commentId);
-      setComments(comments => comments.map(c =>
-        c._id === commentId
-          ? { ...c, likes: isLikedByUser(c.likes) ? c.likes.filter(u => (u === userId || u?._id === userId) === false) : [...(c.likes || []), userId] }
-          : c
-      ));
+      await likeComment(postId, commentId);
+      // Always fetch latest comments from backend to reflect true likes state
+      const updatedComments = await getPostComments(postId);
+      setComments(Array.isArray(updatedComments) ? updatedComments : []);
     } catch {}
     setCommentLikeLoading(l => ({ ...l, [commentId]: false }));
   };
@@ -191,12 +187,12 @@ export default function PostComments({ postId, visible, onClose }) {
               if (item.author?.username && navigation) {
                 navigation.navigate('PublicProfileScreen', { username: item.author.username });
               }
-            }}>
+            }} style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text style={styles.username}>{item.author?.username || item.author?.name || 'User'}</Text>
+              {isVerified && (
+                <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
+              )}
             </TouchableOpacity>
-            {isVerified && (
-              <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
-            )}
           </View>
           <Text style={styles.commentText}>{renderHighlightedContent(item.text || item.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>

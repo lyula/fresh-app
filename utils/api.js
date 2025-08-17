@@ -1,3 +1,24 @@
+// Like a comment
+export async function likeComment(postId, commentId) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}/like`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to like comment');
+  return res.json();
+}
+
+// Like a reply
+export async function likeReply(postId, commentId, replyId) {
+  const token = await getToken();
+  const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error('Failed to like reply');
+  return res.json();
+}
 // Add a comment to a post
 export async function addCommentToPost(postId, content) {
   const token = await getToken();
