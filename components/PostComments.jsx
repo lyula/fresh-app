@@ -58,12 +58,26 @@ export default function PostComments({ postId, visible, onClose }) {
   const handleReplyLike = async (replyId, likesArr) => {
     if (replyLikeLoading[replyId]) return;
     setReplyLikeLoading(l => ({ ...l, [replyId]: true }));
+    // Optimistically update UI
+    setComments(comments => comments.map(c => ({
+      ...c,
+      replies: c.replies?.map(r =>
+        r._id === replyId
+          ? {
+              ...r,
+              likes: isLikedByUser(r.likes)
+                ? r.likes.filter(u => (u === userId || u?._id === userId) === false)
+                : [...(r.likes || []), userId]
+            }
+          : r
+      )
+    })));
     try {
       // Find the parent commentId for this reply
       const parentComment = comments.find(c => Array.isArray(c.replies) && c.replies.some(r => r._id === replyId));
       if (!parentComment) throw new Error('Parent comment not found');
       await likeReply(postId, parentComment._id, replyId);
-      // Always fetch latest comments from backend to reflect true likes state
+      // Fetch latest comments from backend to reflect true likes state
       const updatedComments = await getPostComments(postId);
       setComments(Array.isArray(updatedComments) ? updatedComments : []);
     } catch {}
@@ -150,9 +164,20 @@ export default function PostComments({ postId, visible, onClose }) {
   const handleCommentLike = async (commentId, likesArr) => {
     if (commentLikeLoading[commentId]) return;
     setCommentLikeLoading(l => ({ ...l, [commentId]: true }));
+    // Optimistically update UI
+    setComments(comments => comments.map(c =>
+      c._id === commentId
+        ? {
+            ...c,
+            likes: isLikedByUser(c.likes)
+              ? c.likes.filter(u => (u === userId || u?._id === userId) === false)
+              : [...(c.likes || []), userId]
+          }
+        : c
+    ));
     try {
       await likeComment(postId, commentId);
-      // Always fetch latest comments from backend to reflect true likes state
+      // Fetch latest comments from backend to reflect true likes state
       const updatedComments = await getPostComments(postId);
       setComments(Array.isArray(updatedComments) ? updatedComments : []);
     } catch {}
