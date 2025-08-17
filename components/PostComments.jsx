@@ -58,7 +58,7 @@ export default function PostComments({ postId, visible, onClose }) {
   const handleReplyLike = async (replyId, likesArr) => {
     if (replyLikeLoading[replyId]) return;
     setReplyLikeLoading(l => ({ ...l, [replyId]: true }));
-    // Optimistically update UI
+    // Optimistically update UI instantly
     setComments(comments => comments.map(c => ({
       ...c,
       replies: c.replies?.map(r =>
@@ -77,9 +77,8 @@ export default function PostComments({ postId, visible, onClose }) {
       const parentComment = comments.find(c => Array.isArray(c.replies) && c.replies.some(r => r._id === replyId));
       if (!parentComment) throw new Error('Parent comment not found');
       await likeReply(postId, parentComment._id, replyId);
-      // Fetch latest comments from backend to reflect true likes state
-      const updatedComments = await getPostComments(postId);
-      setComments(Array.isArray(updatedComments) ? updatedComments : []);
+      // Only fetch latest likes count, not all comments
+      // Optionally, you can skip fetching if you want pure optimistic UI
     } catch {}
     setReplyLikeLoading(l => ({ ...l, [replyId]: false }));
   };
@@ -115,6 +114,14 @@ export default function PostComments({ postId, visible, onClose }) {
     const imgUri = getProfileImage(reply.author);
     const isVerified = reply.author?.verified;
     const liked = isLikedByUser(reply.likes);
+    // Find parent comment for this reply
+    const parentComment = comments.find(c => Array.isArray(c.replies) && c.replies.some(r => r._id === reply._id));
+    // Find username of replyTo (if available)
+    let replyToUsername = '';
+    if (reply.replyTo) {
+      const replyToObj = parentComment?.replies?.find(r => r.author?._id === reply.replyTo || r._id === reply.replyTo);
+      replyToUsername = replyToObj?.author?.username || replyToObj?.author?.name || '';
+    }
     return (
       <View style={styles.replyRow} key={reply._id}>
         <TouchableOpacity onPress={() => {
@@ -136,6 +143,11 @@ export default function PostComments({ postId, visible, onClose }) {
             {isVerified && (
               <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
             )}
+            {reply.replyTo && reply.replyTo !== reply.author?._id && (
+              <Text style={{ marginLeft: 8, color: '#1E3A8A', fontStyle: 'italic', fontSize: 12 }}>
+                Replying to @{replyToUsername}
+              </Text>
+            )}
           </View>
           <Text style={styles.replyText}>{renderHighlightedContent(reply.text || reply.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>
@@ -143,7 +155,7 @@ export default function PostComments({ postId, visible, onClose }) {
               <Ionicons name={liked ? 'heart' : 'heart-outline'} size={16} color={liked ? '#e11d48' : '#e11d48'} />
               <Text style={styles.likeCount}>{reply.likes?.length || 0}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleReply(reply._id)}>
+            <TouchableOpacity onPress={() => handleReplyToReply(parentComment?._id, reply._id)}>
               <Text style={styles.replyLink}>Reply</Text>
             </TouchableOpacity>
           </View>
@@ -152,12 +164,26 @@ export default function PostComments({ postId, visible, onClose }) {
     );
   };
 
+  const [replyToReplyId, setReplyToReplyId] = useState(null); // replyId
+  const [replyToUsername, setReplyToUsername] = useState('');
+
+  // Reply to a comment
   const handleReply = (commentId) => {
-    // Pre-fill input with @username of comment author
     const comment = comments.find(c => c._id === commentId);
     const username = comment?.author?.username || comment?.author?.name || '';
     setInput(`@${username} `);
     setReplyTo(commentId);
+    setReplyToReplyId(null);
+    setReplyToUsername(username);
+    inputRef.current?.focus();
+  };
+  // Reply to a reply
+  const handleReplyToReply = (commentId, replyId) => {
+    // Do not pre-fill @username for replies to replies
+    setInput('');
+    setReplyTo(commentId);
+    setReplyToReplyId(replyId);
+    setReplyToUsername('');
     inputRef.current?.focus();
   };
 
@@ -273,15 +299,32 @@ export default function PostComments({ postId, visible, onClose }) {
     if (!input.trim()) return;
     // Clear replyTo before fetching comments to avoid double render
     const currentReplyTo = replyTo;
+    const currentReplyToReplyId = replyToReplyId;
     setReplyTo(null);
-    const postAction = currentReplyTo
-      ? addReplyToComment(postId, currentReplyTo, input.trim())
-      : addCommentToPost(postId, input.trim());
+    setReplyToReplyId(null);
+    setReplyToUsername('');
+    let postAction;
+    if (currentReplyTo && currentReplyToReplyId) {
+      postAction = addReplyToComment(postId, currentReplyTo, {
+        content: input.trim(),
+        replyToReplyId: currentReplyToReplyId
+      });
+    } else if (currentReplyTo) {
+      postAction = addReplyToComment(postId, currentReplyTo, input.trim());
+    } else {
+      postAction = addCommentToPost(postId, input.trim());
+    }
     postAction
-      .then(() => getPostComments(postId))
-      .then(fetchedComments => {
-        setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
-        // Reset showReplies state to avoid duplicate rendering
+      .then((updatedPost) => {
+        // If backend returns updated post/comments, update UI immediately
+        if (updatedPost && updatedPost.comments) {
+          setComments(Array.isArray(updatedPost.comments) ? updatedPost.comments : []);
+        } else {
+          // Fallback: fetch comments
+          return getPostComments(postId).then(fetchedComments => {
+            setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
+          });
+        }
         setShowReplies({});
       })
       .catch(() => {})

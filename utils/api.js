@@ -66,13 +66,18 @@ export async function addCommentToPost(postId, content) {
 // Add a reply to a comment
 export async function addReplyToComment(postId, commentId, content) {
   const token = await getToken();
+  let bodyObj = { content };
+  // If content is an object, extract replyToReplyId
+  if (typeof content === 'object' && content !== null) {
+    bodyObj = content;
+  }
   const res = await fetch(`${API_BASE}/posts/${postId}/comments/${commentId}/replies`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ content }),
+    body: JSON.stringify(bodyObj),
   });
   if (!res.ok) throw new Error('Failed to add reply');
   return await res.json();
