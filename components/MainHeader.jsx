@@ -1,5 +1,6 @@
 import React from 'react';
 import { useSidebar } from '../context/SidebarContext';
+import { useNotifications } from '../context/notifications';
 import { View, Text, TouchableOpacity, Image, StyleSheet, StatusBar } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
@@ -7,7 +8,7 @@ import Ionicons from 'react-native-vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUser } from '../context/user';
 
-const LOGO = require('../assets/icon.png');
+const LOGO = require('../assets/mount.png');
 const GOLD = '#a99d6b';
 const ICON_COLOR = '#1E3A8A';
 
@@ -19,6 +20,7 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
   const insets = useSafeAreaInsets();
   const { toggleSidebar } = useSidebar();
   const { user: profile } = useUser();
+  const { unreadCount } = useNotifications();
   // Get profile image (same logic as Sidebar)
   let profileImage = null;
   if (profile) {
@@ -31,6 +33,7 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>  
       <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" translucent={false} />
+  {/* ...existing code... */}
       <TouchableOpacity style={styles.iconButton} onPress={toggleSidebar}>
         <Icon name="bars" size={30} color={ICON_COLOR} />
       </TouchableOpacity>
@@ -45,7 +48,14 @@ export default function MainHeader({ title = 'Vibe', onCommunity, onMessages, on
           <Ionicons name="chatbox" size={22} color={ICON_COLOR} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={onNotifications || (() => navigation.navigate('NotificationsScreen'))}>
-          <Icon name="bell" size={20} color={ICON_COLOR} />
+          <View style={{ position: 'relative' }}>
+            <Icon name="bell" size={20} color={ICON_COLOR} />
+            {unreadCount > 0 && (
+              <View style={styles.badgeOnIcon}>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </View>
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton} onPress={onProfile || (() => navigation.navigate('PublicProfileScreen'))}>
           {profileImage ? (
@@ -101,5 +111,23 @@ const styles = StyleSheet.create({
     height: 32,
     borderRadius: 16,
     resizeMode: 'cover',
+  },
+  badgeOnIcon: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#ef4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });
