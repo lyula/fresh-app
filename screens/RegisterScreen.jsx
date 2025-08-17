@@ -147,8 +147,7 @@ export default function RegisterScreen() {
   const [showCountryList, setShowCountryList] = useState(false);
   const [error, setError] = useState('');
 
-  const handleRegister = () => {
-    // TODO: Connect to backend API
+  const handleRegister = async () => {
     if (!username || !email || !password || !confirm || !gender || !dob || !country) {
       setError('Please fill all fields.');
       return;
@@ -162,7 +161,47 @@ export default function RegisterScreen() {
       return;
     }
     setError('');
-  navigation.replace('PostsFeed');
+
+    // Fetch country code and flag from selected country
+    let countryCode = '';
+    let countryFlag = '';
+    try {
+      const res = await fetch('https://restcountries.com/v3.1/all?fields=name,cca2,flags');
+      const data = await res.json();
+      const match = data.find(c => c.name.common === country);
+      if (match) {
+        countryCode = match.cca2;
+        countryFlag = match.flags && match.flags.png ? match.flags.png : '';
+      }
+    } catch {}
+
+    // Prepare payload
+    const payload = {
+      username,
+      email,
+      password,
+      gender,
+      dateOfBirth: dob ? dob.toISOString() : '',
+      country,
+      countryCode,
+      countryFlag,
+    };
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json();
+      if (response.ok && result.message === 'User registered successfully') {
+        navigation.replace('Login');
+      } else {
+        setError(result.message || 'Registration failed.');
+      }
+    } catch (err) {
+      setError('Network error. Please try again.');
+    }
   };
 
   return (
