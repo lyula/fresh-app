@@ -8,7 +8,7 @@ import Constants from 'expo-constants';
 export default function PostDetailScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { postId } = route.params || {};
+  const { postId, commentId, replyId } = route.params || {};
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -57,18 +57,14 @@ export default function PostDetailScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ alignItems: 'center', padding: 16 }}>
-      {/* Render full PostCard at the top */}
-      <PostCard post={postWithAuthor} navigation={navigation} />
-      {/* Comments section as before */}
-      <View style={styles.commentsSection}>
-        {post.comments?.map((comment, idx) => (
-          <View key={comment._id || idx} style={styles.commentRow}>
-            <Text style={styles.commentText}>{comment.text}</Text>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <View style={styles.centeredWrapper}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.centeredContent}>
+        {/* Render full PostCard at the top, with media margin matching feed */}
+        <View style={styles.feedPostWrapper}>
+          <PostCard post={postWithAuthor} navigation={navigation} />
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -76,6 +72,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+  },
+  centeredWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  centeredContent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    minHeight: '100%',
+    width: '100%',
   },
   center: {
     flex: 1,
@@ -135,9 +144,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
   },
-  commentRow: {
-    flexDirection: 'row',
-    marginBottom: 6,
+  // ...existing code...
+  feedPostWrapper: {
+    marginLeft: 0, // Match feed margin, adjust as needed
+    marginRight: 0,
+    // Add any other styles from feed post wrapper if needed
   },
   commentUser: {
     fontWeight: 'bold',

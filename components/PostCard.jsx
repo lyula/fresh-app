@@ -44,6 +44,8 @@ import { incrementPostShareCount, editPost, deletePost } from '../utils/api';
 
 export default function PostCard({ post, navigation, onPostDeleted, onPostEdited, isVisible = true }) {
   const { userId } = useUser();
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const screenWidth = Dimensions.get('window').width;
   const screenHeight = Dimensions.get('window').height;
   const [mediaHeight, setMediaHeight] = useState(screenWidth); // default square
@@ -215,30 +217,49 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
         ) : null}
         {post.video ? (
           <View style={{ width: screenWidth, alignSelf: 'center' }}>
-            <Video
-              source={{ uri: post.video }}
-              style={{ width: screenWidth, height: mediaHeight, backgroundColor: '#000' }}
-              resizeMode="cover"
-              useNativeControls
-              shouldPlay={isVisible}
-              isLooping
-              onLoad={event => {
-                const { width, height } = event.naturalSize || {};
-                if (width && height) {
-                  const aspectRatio = height / width;
-                  let displayHeight = screenWidth * aspectRatio;
-                  if (aspectRatio > INSTAGRAM_MAX_RATIO) {
-                    displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
-                  } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
-                    displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
+            <TouchableOpacity activeOpacity={0.95} onPress={() => setIsFullscreen(true)}>
+              <Video
+                source={{ uri: post.video }}
+                style={{ width: screenWidth, height: mediaHeight, backgroundColor: '#000' }}
+                resizeMode="cover"
+                shouldPlay={isVisible}
+                isLooping
+                isMuted={isMuted}
+                useNativeControls={isFullscreen}
+                onFullscreenUpdate={event => {
+                  if (event.fullscreenUpdate === 1) setIsFullscreen(true); // FULLSCREEN_ENTER
+                  if (event.fullscreenUpdate === 3) setIsFullscreen(false); // FULLSCREEN_EXIT
+                }}
+                onLoad={event => {
+                  const { width, height } = event.naturalSize || {};
+                  if (width && height) {
+                    const aspectRatio = height / width;
+                    let displayHeight = screenWidth * aspectRatio;
+                    if (aspectRatio > INSTAGRAM_MAX_RATIO) {
+                      displayHeight = screenWidth * INSTAGRAM_MAX_RATIO;
+                    } else if (aspectRatio < INSTAGRAM_MIN_RATIO) {
+                      displayHeight = screenWidth * INSTAGRAM_MIN_RATIO;
+                    }
+                    if (displayHeight > screenHeight) displayHeight = screenHeight;
+                    setMediaHeight(displayHeight);
+                  } else {
+                    setMediaHeight(screenWidth);
                   }
-                  if (displayHeight > screenHeight) displayHeight = screenHeight;
-                  setMediaHeight(displayHeight);
-                } else {
-                  setMediaHeight(screenWidth);
-                }
-              }}
-            />
+                }}
+              />
+              {/* Speaker icon overlay for mute/unmute */}
+              <TouchableOpacity
+                style={styles.speakerIcon}
+                onPress={() => setIsMuted(m => !m)}
+                activeOpacity={0.7}
+              >
+                <MaterialCommunityIcons
+                  name={isMuted ? 'volume-off' : 'volume-high'}
+                  size={28}
+                  color="#fff"
+                />
+              </TouchableOpacity>
+            </TouchableOpacity>
           </View>
         ) : null}
          <View style={{ marginBottom: 8, paddingLeft: 6, paddingRight: 6, paddingTop: 4 }}>
@@ -317,6 +338,15 @@ export default function PostCard({ post, navigation, onPostDeleted, onPostEdited
   );
 }
 const styles = StyleSheet.create({
+  speakerIcon: {
+    position: 'absolute',
+    bottom: 16,
+    right: 16,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    borderRadius: 20,
+    padding: 6,
+    zIndex: 10,
+  },
   card: {
     backgroundColor: 'transparent',
     borderRadius: 0,
