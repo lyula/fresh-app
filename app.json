@@ -2,13 +2,13 @@
   "expo": {
     "name": "fresh-app",
     "slug": "fresh-app",
-    "version": "1.0.0",
+    "version": "1.3.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+  "icon": "./assets/mount.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/mount.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },

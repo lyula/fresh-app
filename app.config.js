@@ -3,7 +3,7 @@ export default {
     name: "Journaltest",
     slug: "journaltest",
     version: "1.0.0",
-    icon: "./assets/mount.png",
+  icon: "./assets/mount.png",
     owner: "zack254",
     extra: {
       API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
