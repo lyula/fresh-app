@@ -137,17 +137,17 @@ export default function PostComments({ postId, visible, onClose }) {
               if (reply.author?.username && navigation) {
                 navigation.navigate('PublicProfileScreen', { username: reply.author.username });
               }
-            }}>
-              <Text style={styles.replyUsername}>{reply.author?.username || reply.author?.name || 'User'}</Text>
+            }} style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.replyUsername}>{reply.author?.username || reply.author?.name || 'User'}</Text>{isVerified && (
+                <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
+              )}
             </TouchableOpacity>
-            {isVerified && (
-              <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
-            )}
             {reply.replyTo && reply.replyTo !== reply.author?._id && (
               <Text style={{ marginLeft: 8, color: '#1E3A8A', fontStyle: 'italic', fontSize: 12 }}>
                 Replying to @{replyToUsername}
               </Text>
             )}
+            <Text style={[styles.replyTime, { marginLeft: 8, alignSelf: 'center', marginTop: -2 }]}>{formatRelativeTime(reply.createdAt)}</Text>
           </View>
           <Text style={styles.replyText}>{renderHighlightedContent(reply.text || reply.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>
@@ -239,11 +239,11 @@ export default function PostComments({ postId, visible, onClose }) {
                 navigation.navigate('PublicProfileScreen', { username: item.author.username });
               }
             }} style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.username}>{item.author?.username || item.author?.name || 'User'}</Text>
-              {isVerified && (
+              <Text style={styles.replyUsername}>{item.author?.username || item.author?.name || 'User'}</Text>{isVerified && (
                 <Image source={{ uri: VERIFIED_BADGE_URI }} style={VERIFIED_BADGE_STYLE} resizeMode="contain" accessibilityLabel="Verified badge" />
               )}
             </TouchableOpacity>
+            <Text style={[styles.commentTime, { marginLeft: 8, alignSelf: 'center', marginTop: -2 }]}>{formatRelativeTime(item.createdAt)}</Text>
           </View>
           <Text style={styles.commentText}>{renderHighlightedContent(item.text || item.content || '', navigation)}</Text>
           <View style={styles.commentActionsRow}>
@@ -320,11 +320,18 @@ export default function PostComments({ postId, visible, onClose }) {
       .then((updatedPost) => {
         // If backend returns updated post/comments, update UI immediately
         if (updatedPost && updatedPost.comments) {
-          setComments(Array.isArray(updatedPost.comments) ? updatedPost.comments : []);
+          // Sort comments by createdAt descending so newest is at the top
+          const sortedComments = Array.isArray(updatedPost.comments)
+            ? updatedPost.comments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            : [];
+          setComments(sortedComments);
         } else {
           // Fallback: fetch comments
           return getPostComments(postId).then(fetchedComments => {
-            setComments(Array.isArray(fetchedComments) ? fetchedComments : []);
+            const sortedComments = Array.isArray(fetchedComments)
+              ? fetchedComments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              : [];
+            setComments(sortedComments);
           });
         }
         setShowReplies({});
@@ -357,6 +364,37 @@ export default function PostComments({ postId, visible, onClose }) {
       });
   }, [visible, postId]);
 
+  // Update formatRelativeTime to remove 'ago' and format with dot separator
+  function formatRelativeTime(date) {
+    if (!date) return '';
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const now = Date.now();
+    const diffMs = now - d.getTime();
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    if (diffDay < 1) {
+      if (diffHour < 1) {
+        if (diffMin < 1) return 'just now';
+        return `${diffMin} min`;
+      }
+      return `${diffHour} hour${diffHour > 1 ? 's' : ''}`;
+    }
+    if (diffDay < 7) {
+      return `${diffDay} day${diffDay > 1 ? 's' : ''}`;
+    }
+    const diffWeek = Math.floor(diffDay / 7);
+    if (diffWeek < 5) {
+      return `${diffWeek} week${diffWeek > 1 ? 's' : ''}`;
+    }
+    const diffMonth = Math.floor(diffDay / 30.44);
+    if (diffMonth < 12) {
+      return `${diffMonth} month${diffMonth > 1 ? 's' : ''}`;
+    }
+    const diffYear = Math.floor(diffDay / 365.25);
+    return `${diffYear} year${diffYear > 1 ? 's' : ''}`;
+  }
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -569,6 +607,24 @@ const styles = StyleSheet.create({
   closeText: {
     fontSize: 16,
     color: '#333',
+    fontWeight: 'bold',
+  },
+  commentTime: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  replyTime: {
+    color: '#888',
+    fontSize: 12,
+    marginTop: 4,
+  },
+  // Add dot style to PostComments styles
+  dot: {
+    fontSize: 16,
+    color: '#888',
+    marginLeft: 6,
+    marginRight: 4,
     fontWeight: 'bold',
   },
 });
