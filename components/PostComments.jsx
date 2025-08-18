@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useUser } from '../context/user';
-import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, FlatList, Image, TouchableOpacity, TextInput, ActivityIndicator, StyleSheet, KeyboardAvoidingView, Platform, Modal, Keyboard } from 'react-native';
 import { getPostById, getPostComments, getTotalCommentCount, likePost, likeComment, likeReply, addCommentToPost, addReplyToComment } from '../utils/api';
 import { Ionicons, Feather } from '@expo/vector-icons';
 // Use the exact badge URI and style as post author badge
@@ -296,7 +296,9 @@ export default function PostComments({ postId, visible, onClose }) {
   };
 
   const handleSend = () => {
-    if (!input.trim()) return;
+    if (!input.trim() || sending) return;
+    Keyboard.dismiss();
+    setSending(true);
     // Clear replyTo before fetching comments to avoid double render
     const currentReplyTo = replyTo;
     const currentReplyToReplyId = replyToReplyId;
@@ -330,9 +332,11 @@ export default function PostComments({ postId, visible, onClose }) {
       .catch(() => {})
       .finally(() => {
         setInput('');
+        setSending(false);
       });
   };
   const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [input, setInput] = useState('');
   const [replyTo, setReplyTo] = useState(null);
   const [showReplies, setShowReplies] = useState({}); // { [commentId]: true/false }
@@ -367,8 +371,8 @@ export default function PostComments({ postId, visible, onClose }) {
               placeholder={replyTo ? 'Reply to comment...' : 'Add a comment...'}
               placeholderTextColor="#aaa"
             />
-            <TouchableOpacity onPress={handleSend} style={styles.sendBtn}>
-              <Feather name="send" size={20} color="#fff" />
+            <TouchableOpacity onPress={handleSend} style={styles.sendBtn} disabled={sending || !input.trim()}>
+              <Feather name="send" size={20} color={sending || !input.trim() ? '#aaa' : '#fff'} />
             </TouchableOpacity>
           </View>
           {loading ? (
