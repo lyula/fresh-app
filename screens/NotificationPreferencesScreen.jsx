@@ -7,6 +7,13 @@ export default function NotificationPreferencesScreen({ navigation }) {
     push: true,
     email: false,
     sms: false,
+    pushTypes: {
+      comment: true,
+      reply: true,
+      like: true,
+      mention: true,
+      message: true,
+    },
   });
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +21,16 @@ export default function NotificationPreferencesScreen({ navigation }) {
     async function fetchPrefs() {
       try {
         const prefs = await getNotificationPreferences();
-        setPreferences(prefs);
+        setPreferences({
+          ...prefs,
+          pushTypes: {
+            comment: prefs?.pushTypes?.comment ?? true,
+            reply: prefs?.pushTypes?.reply ?? true,
+            like: prefs?.pushTypes?.like ?? true,
+            mention: prefs?.pushTypes?.mention ?? true,
+            message: prefs?.pushTypes?.message ?? true,
+          },
+        });
       } catch {
         // fallback to defaults
       }
@@ -59,6 +75,20 @@ export default function NotificationPreferencesScreen({ navigation }) {
           onValueChange={v => setPreferences(p => ({ ...p, sms: v }))}
         />
       </View>
+      <View style={styles.divider} />
+      <Text style={styles.subtitle}>Push Notification Types:</Text>
+      {Object.entries(preferences.pushTypes).map(([type, value]) => (
+        <View style={styles.row} key={type}>
+          <Text style={styles.label}>{type.charAt(0).toUpperCase() + type.slice(1)} Notifications</Text>
+          <Switch
+            value={value}
+            onValueChange={v => setPreferences(p => ({
+              ...p,
+              pushTypes: { ...p.pushTypes, [type]: v }
+            }))}
+          />
+        </View>
+      ))}
       <View style={styles.bottomContainer}>
         <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
           <Text style={styles.saveText}>{loading ? 'Saving...' : 'Save Preferences'}</Text>

@@ -1,4 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { Switch } from 'react-native';
+import { getNotificationPreferences, saveNotificationPreferences } from '../utils/notifications';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { View, Text, FlatList, StyleSheet, ActivityIndicator, Alert, Image, TouchableOpacity } from 'react-native';
 import axios from 'axios';
@@ -10,6 +12,55 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 
 export default function NotificationsScreen() {
+  const [preferences, setPreferences] = useState({
+    push: true,
+    email: false,
+    sms: false,
+    pushTypes: {
+      comment: true,
+      reply: true,
+      like: true,
+      mention: true,
+      message: true,
+    },
+  });
+  const [loadingPrefs, setLoadingPrefs] = useState(false);
+  // Fetch notification preferences for toggles
+  useEffect(() => {
+    async function fetchPrefs() {
+      setLoadingPrefs(true);
+      try {
+        const prefs = await getNotificationPreferences();
+        setPreferences({
+          ...prefs,
+          pushTypes: {
+            comment: prefs?.pushTypes?.comment ?? true,
+            reply: prefs?.pushTypes?.reply ?? true,
+            like: prefs?.pushTypes?.like ?? true,
+            mention: prefs?.pushTypes?.mention ?? true,
+            message: prefs?.pushTypes?.message ?? true,
+          },
+        });
+      } catch {
+        // fallback to defaults
+      } finally {
+        setLoadingPrefs(false);
+      }
+    }
+    fetchPrefs();
+  }, []);
+
+  const handleSavePrefs = async () => {
+    setLoadingPrefs(true);
+    try {
+      await saveNotificationPreferences(preferences);
+      Alert.alert('Saved', 'Your notification preferences have been updated.');
+    } catch {
+      Alert.alert('Error', 'Failed to save preferences.');
+    } finally {
+      setLoadingPrefs(false);
+    }
+  };
   const navigation = useNavigation();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -239,6 +290,25 @@ export default function NotificationsScreen() {
           onNotifications={() => navigation.navigate('NotificationsScreen')}
           onProfile={() => navigation.navigate('PublicProfileScreen')}
         />
+      </View>
+      {/* Notification type toggles UI */}
+      <View style={{ padding: 16, backgroundColor: '#f7f8fa', borderRadius: 12, margin: 12 }}>
+        <Text style={{ fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Push Notification Types</Text>
+        {Object.entries(preferences.pushTypes).map(([type, value]) => (
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }} key={type}>
+            <Text style={{ fontSize: 15, color: '#222' }}>{type.charAt(0).toUpperCase() + type.slice(1)} Notifications</Text>
+            <Switch
+              value={value}
+              onValueChange={v => setPreferences(p => ({
+                ...p,
+                pushTypes: { ...p.pushTypes, [type]: v }
+              }))}
+            />
+          </View>
+        ))}
+        <TouchableOpacity style={{ backgroundColor: '#1E3A8A', borderRadius: 8, padding: 12, alignItems: 'center', marginTop: 8 }} onPress={handleSavePrefs} disabled={loadingPrefs}>
+          <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 15 }}>{loadingPrefs ? 'Saving...' : 'Save Notification Settings'}</Text>
+        </TouchableOpacity>
       </View>
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 100 }}>
